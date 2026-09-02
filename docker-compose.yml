@@ -1,0 +1,84 @@
+services:
+  catalog-sql:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    # Microsoft only publishes this image for linux/amd64. Pinning the
+    # platform makes Docker Desktop emulate it consistently on Apple
+    # Silicon instead of guessing — it works, just slower than a native
+    # image. (mcr.microsoft.com/azure-sql-edge ships arm64 natively and is
+    # close enough for this schema if emulation turns out to be a problem
+    # in practice — not switched to by default since the assignment asks
+    # for SQL Server specifically.)
+    platform: linux/amd64
+    container_name: catalog-sql
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: ${MSSQL_SA_PASSWORD:?set MSSQL_SA_PASSWORD in .env}
+    ports:
+      - "${MSSQL_PORT:-1433}:1433"
+    volumes:
+      - catalog-sql-data:/var/opt/mssql
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P \"$$MSSQL_SA_PASSWORD\" -No -Q 'SELECT 1' || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+
+  orders-es:
+    image: docker.elastic.co/elasticsearch/elasticsearch:9.5.2
+    container_name: orders-es
+    environment:
+      discovery.type: single-node
+      xpack.security.enabled: "false"
+      ES_JAVA_OPTS: "-Xms512m -Xmx512m"
+    ports:
+      - "${ELASTICSEARCH_PORT:-9200}:9200"
+    volumes:
+      - orders-es-data:/usr/share/elasticsearch/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:9200/_cluster/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+  # Optional, containerized versions of the two APIs -- NOT started by a plain
+  # "docker compose up -d" (see the top-level "profiles" note below the two services),
+  # since local dev's default flow (`dotnet run` / `npm run start:dev` against just
+  # catalog-sql/orders-es in Docker) is faster to iterate against and stays unaffected by
+  # adding these. Run `docker compose --profile full up -d --build` to also bring these two
+  # up and check the whole thing containerized end to end -- closer to how this would
+  # actually deploy than running two long-lived local processes by hand.
+  catalog-api:
+    build:
+      context: ./server-catalog
+    container_name: catalog-api
+    profiles: ["full"]
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ConnectionStrings__CatalogDb: "Server=catalog-sql;Database=${CATALOG_DB_NAME:-CatalogDb};User Id=sa;Password=${MSSQL_SA_PASSWORD:?set MSSQL_SA_PASSWORD in .env};TrustServerCertificate=True"
+      Cors__AllowedOrigins__0: "http://localhost:5173"
+    ports:
+      - "5080:8080"
+    depends_on:
+      catalog-sql:
+        condition: service_healthy
+
+  orders-api:
+    build:
+      context: ./server-orders
+    container_name: orders-api
+    profiles: ["full"]
+    environment:
+      NODE_ENV: production
+      ELASTICSEARCH_NODE: "http://orders-es:9200"
+      CORS_ALLOWED_ORIGINS: "http://localhost:5173"
+    ports:
+      - "3001:3001"
+    depends_on:
+      orders-es:
+        condition: service_healthy
+
+volumes:
+  catalog-sql-data:
+  orders-es-data:

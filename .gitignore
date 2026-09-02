@@ -1,0 +1,22 @@
+# .NET build output
+bin/
+obj/
+TestResults/
+
+# IDEs — Visual Studio (Windows), Rider (cross-platform), VS Code
+.vs/
+*.user
+.idea/
+.vscode/
+
+# OS-generated files (repo targets Windows/macOS/Linux, so both apply)
+.DS_Store
+Thumbs.db
+
+# Secrets — never committed; see .env.example and README for the real setup
+.env
+
+# Node (server-orders/client, once built) — no node_modules exist yet, added ahead of time
+node_modules/
+dist/
+npm-debug.log*

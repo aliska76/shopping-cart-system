@@ -1,0 +1,38 @@
+[
+  {
+    "nameEn": "Dairy",
+    "nameHe": "חלב וגבינות",
+    "products": [
+      { "nameEn": "Cottage Cheese", "nameHe": "קוטג'", "imageUrl": "https://www.tnuva.co.il/wp-content/uploads/2026/05/product-7424-20260512164600.jpg", "imagePath": "/images/cottage-cheese.jpg" },
+      { "nameEn": "Milk 3%", "nameHe": "חלב 3%", "imageUrl": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTFJsETYVE4sNDTR6l20tr_2XXgzuqMpTGZGSeRGZmcwQ&s=10", "imagePath": "/images/milk.jpg" },
+      { "nameEn": "Sour Cream", "nameHe": "שמנת", "imageUrl": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSjSUAsxF1kgoNJx3-IXn85lawZnk6Ruv6Y1VyoQ5tcYg&s=10", "imagePath": "/images/sour-cream.jpg" },
+      { "nameEn": "Yogurt", "nameHe": "יוגורט", "imageUrl": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSHsrA_deB2f91bWf8SRcxhcq1_iNdpZej3rRMpMEbPGQ&s=10", "imagePath": "/images/yogurt.jpg" },
+      { "nameEn": "Butter", "nameHe": "חמאה", "imageUrl": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTcVL9-2dM87kpYQWFWbUSDHTDUlvZbDg2eg_9yuHaiCg&s=10", "imagePath": "/images/butter.jpg" }
+    ]
+  },
+  {
+    "nameEn": "Meat",
+    "nameHe": "בשר",
+    "products": [
+      { "nameEn": "Sausages", "nameHe": "נקניקיות", "imageUrl": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSDyQ6NzhIchy-O1XIoZiEIHvFeEWQ6DIfGggxmQ_EK3w&s=10", "imagePath": "/images/sausages.jpg" },
+      { "nameEn": "Chicken Drumsticks", "nameHe": "שוקיים", "imageUrl": null, "imagePath": null },
+      { "nameEn": "Salmon", "nameHe": "סלמון", "imageUrl": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTkXSb2spYC8PgImmRbSVpMxF7Vz3asaiOX2TJB2c4I2g&s=10", "imagePath": "/images/salmon.jpg" },
+      { "nameEn": "Ground Beef", "nameHe": "בשר טחון", "imageUrl": null, "imagePath": null },
+      { "nameEn": "Turkey Breast", "nameHe": "חזה הודו", "imageUrl": null, "imagePath": null }
+    ]
+  },
+  {
+    "nameEn": "Fruits & Vegetables",
+    "nameHe": "ירקות ופירות",
+    "products": [
+      { "nameEn": "Tomatoes", "nameHe": "עגבניות", "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/89/Tomato_je.jpg/250px-Tomato_je.jpg", "imagePath": "/images/tomatoes.jpg" },
+      { "nameEn": "Cucumbers", "nameHe": "מלפפונים", "imageUrl": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQwdcsMoJZ0FP1sallbbaj02BxRoK9DMm6btThBzaaDDg&s=10", "imagePath": "/images/cucumbers.jpg" },
+      { "nameEn": "Bananas", "nameHe": "בננות", "imageUrl": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQl6cR9qHmdvVkUzmHoO1IBfT1h8OjkHUFcU5O1JkAWVw&s=10", "imagePath": "/images/bananas.jpg" },
+      { "nameEn": "Papaya", "nameHe": "פפאיה", "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/6/6b/Papaya_cross_section_BNC.jpg?utm_source=commons.wikimedia.org&utm_campaign=index&utm_content=original", "imagePath": "/images/papaya.jpg" },
+      { "nameEn": "Apples", "nameHe": "תפוחים", "imageUrl": "https://cdn.pixabay.com/photo/2016/09/29/08/33/apple-1702316_1280.jpg", "imagePath": "/images/apples.jpg" },
+      { "nameEn": "Oranges", "nameHe": "תפוזים", "imageUrl": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRFarFP7V1Dzmuen5anFwK0KsibdtQGaKmE3FBy6RnEpsqqZHHNQQafOFPh&s=10", "imagePath": "/images/oranges.jpg" },
+      { "nameEn": "Bell Peppers", "nameHe": "פלפלים", "imageUrl": "https://www.camoni.co.il/wp-content/uploads/webfiles/camoni/cms_files/headers/header_1571211952-701x450.jpg", "imagePath": "/images/bell-peppers.jpg" },
+      { "nameEn": "Sweet Potatoes", "nameHe": "בטטה", "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/4/45/Sweet_potatoes.JPG", "imagePath": "/images/sweet-potatoes.jpg" }
+    ]
+  }
+]

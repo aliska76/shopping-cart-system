@@ -1,0 +1,10 @@
+<Project>
+
+  <!-- Applies to every project under server-catalog/ (src/ and tests/) — MSBuild picks this
+       up automatically from the closest Directory.Build.props on the way up from each
+       .csproj, so this is written once here rather than repeated per-project. -->
+  <PropertyGroup>
+    <Authors>Alisa Rakhlina (aliska76@gmail.com)</Authors>
+  </PropertyGroup>
+
+</Project>
