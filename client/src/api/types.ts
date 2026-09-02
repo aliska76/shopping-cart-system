@@ -8,12 +8,20 @@
 
 // --- server-catalog (GET /api/v1/categories) ---
 
+// Mirrors server-catalog's ProductUnit enum (Catalog.Domain/Entities/ProductUnit.cs).
+// The API serializes it as a string (Program.cs registers a JsonStringEnumConverter),
+// so a plain union type is the natural client-side equivalent — no need for a
+// numeric-enum-plus-mapping-table the way a raw int response would have required.
+export type ProductUnit = 'Kilogram' | 'Piece' | 'Liter';
+
 export interface Product {
   id: number;
   nameEn: string;
   nameHe: string;
   imageUrl: string | null;
   imagePath: string | null;
+  unitPrice: number;
+  unit: ProductUnit;
 }
 
 export interface Category {

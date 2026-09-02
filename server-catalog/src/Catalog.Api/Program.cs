@@ -8,6 +8,7 @@ using Catalog.Infrastructure.Persistence.Seed;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.OpenApi;
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -15,7 +16,11 @@ builder.Logging.AddCatalogLogging(builder.Environment);
 
 var useInMemoryStore = builder.Configuration.GetValue<bool>("Catalog:UseInMemoryStore");
 
-builder.Services.AddControllers();
+// JsonStringEnumConverter so ProductDto.Unit serializes as "Kilogram"/"Piece"/"Liter" in the
+// actual HTTP response, not its underlying int -- client reads a self-explanatory string
+// straight off the wire instead of needing its own copy of the enum's numeric mapping.
+builder.Services.AddControllers()
+    .AddJsonOptions(options => options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {

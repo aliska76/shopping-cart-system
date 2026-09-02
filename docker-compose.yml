@@ -79,6 +79,30 @@ services:
       orders-es:
         condition: service_healthy
 
+  # Static build served by nginx (client/Dockerfile, client/nginx.conf -- SPA fallback for
+  # react-router). Also gated behind "full" -- local dev's default flow is `npm run dev`
+  # (see client/README.md), which is faster to iterate against than rebuilding this image on
+  # every change. The two VITE_* build args are baked into the JS bundle at build time (Vite
+  # doesn't read them at runtime), pointing at the same host ports catalog-api/orders-api
+  # publish above -- the browser calls those directly, this container's own network is
+  # irrelevant to that traffic. depends_on here is just start ordering (no health check to
+  # wait on -- nginx serving static files has nothing to become ready): the app already
+  # handles a not-yet-up API with a loading/error state (see CatalogPage.tsx), so it isn't
+  # required for the container to come up successfully.
+  client:
+    build:
+      context: ./client
+      args:
+        VITE_CATALOG_API_URL: "http://localhost:5080"
+        VITE_ORDERS_API_URL: "http://localhost:3001"
+    container_name: client
+    profiles: ["full"]
+    ports:
+      - "5173:80"
+    depends_on:
+      - catalog-api
+      - orders-api
+
 volumes:
   catalog-sql-data:
   orders-es-data:

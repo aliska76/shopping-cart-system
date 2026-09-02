@@ -1,3 +1,5 @@
+using Catalog.Domain.Entities;
+
 namespace Catalog.Application.Dtos;
 
-public record ProductDto(int Id, string NameEn, string NameHe, string? ImageUrl, string? ImagePath);
+public record ProductDto(int Id, string NameEn, string NameHe, string? ImageUrl, string? ImagePath, decimal UnitPrice, ProductUnit Unit);

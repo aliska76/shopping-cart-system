@@ -28,5 +28,18 @@ public class ProductConfiguration : IEntityTypeConfiguration<Product>
         // CatalogDemoData for why both are stored side by side.
         builder.Property(product => product.ImagePath)
             .HasMaxLength(500);
+
+        // decimal(10,2): exact two-decimal-place money (ILS) -- SQL Server's own type for
+        // this, not the binary floating point `double`/`float` would give.
+        builder.Property(product => product.UnitPrice)
+            .HasColumnType("decimal(10,2)");
+
+        // Stored as the enum member's own name ("Kilogram"/"Piece"/"Liter"), not its
+        // underlying int -- readable straight out of a SQL query or the DB browser, at the
+        // cost of a couple more bytes per row. ProductUnit has three members today; this
+        // column just needs to fit the longest one.
+        builder.Property(product => product.Unit)
+            .HasConversion<string>()
+            .HasMaxLength(20);
     }
 }

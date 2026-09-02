@@ -14,6 +14,8 @@ const product: Product = {
   nameHe: 'תפוחים',
   imageUrl: null,
   imagePath: null,
+  unitPrice: 6.9,
+  unit: 'Kilogram',
 };
 
 function renderCard() {

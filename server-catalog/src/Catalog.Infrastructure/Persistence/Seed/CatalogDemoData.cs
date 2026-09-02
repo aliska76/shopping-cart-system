@@ -1,4 +1,5 @@
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using Catalog.Domain.Entities;
 
 namespace Catalog.Infrastructure.Persistence.Seed;
@@ -22,7 +23,15 @@ namespace Catalog.Infrastructure.Persistence.Seed;
 public static class CatalogDemoData
 {
     private const string ResourceName = "Catalog.Infrastructure.Persistence.Seed.catalog-demo-data.json";
-    private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
+
+    // JsonStringEnumConverter so "unit": "Kilogram" in catalog-demo-data.json deserializes
+    // straight onto ProductUnit -- without it, System.Text.Json expects (and this file
+    // deliberately doesn't use) the enum's underlying int, which nobody editing the JSON by
+    // hand should have to look up.
+    private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web)
+    {
+        Converters = { new JsonStringEnumConverter() },
+    };
 
     public static List<Category> BuildCategories()
     {
@@ -41,6 +50,8 @@ public static class CatalogDemoData
                     NameHe = productRecord.NameHe,
                     ImageUrl = productRecord.ImageUrl,
                     ImagePath = productRecord.ImagePath,
+                    UnitPrice = productRecord.UnitPrice,
+                    Unit = productRecord.Unit,
                 });
             }
 
@@ -62,5 +73,5 @@ public static class CatalogDemoData
 
     private sealed record CategoryRecord(string NameEn, string NameHe, List<ProductRecord> Products);
 
-    private sealed record ProductRecord(string NameEn, string NameHe, string? ImageUrl, string? ImagePath);
+    private sealed record ProductRecord(string NameEn, string NameHe, string? ImageUrl, string? ImagePath, decimal UnitPrice, ProductUnit Unit);
 }

@@ -8,7 +8,7 @@ import { prefixer } from 'stylis';
 /**
  * Pins one subtree to a physical LTR layout regardless of the app's current language/theme
  * direction (see ThemeDirectionProvider). A plain CSS `direction: 'ltr'` override on a Box is
- * enough for a plain flex container (that's what App.tsx's header Toolbar uses), but it is
+ * enough for a plain flex container (that's what AppHeader.tsx's Toolbar uses), but it is
  * NOT enough for MUI's `Tabs`: reading Tabs' own source confirms its indicator position,
  * scroll-button direction and scroll-amount math all come from `useRtl()` (MUI's internal RTL
  * context, populated from the nearest `ThemeProvider`'s `direction`) rather than from the
@@ -22,14 +22,22 @@ import { prefixer } from 'stylis';
  * either way — the Unicode bidi algorithm orders characters within a run on its own,
  * independently of the container's layout direction.
  */
-export default function LtrRegion({ children }: { children: ReactNode }) {
+export default function LtrRegion({
+  children,
+  className,
+}: {
+  children: ReactNode;
+  className?: string;
+}) {
   const cache = useMemo(() => createCache({ key: 'muiltr-region', stylisPlugins: [prefixer] }), []);
   const theme = useMemo(() => createTheme({ direction: 'ltr' }), []);
 
   return (
     <CacheProvider value={cache}>
       <ThemeProvider theme={theme}>
-        <Box dir="ltr">{children}</Box>
+        <Box dir="ltr" className={className} data-testid="ltr-region">
+          {children}
+        </Box>
       </ThemeProvider>
     </CacheProvider>
   );

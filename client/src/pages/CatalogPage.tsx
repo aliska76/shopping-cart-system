@@ -32,7 +32,7 @@ export default function CatalogPage() {
   }, [categories, selected]);
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100%' }}>
+    <Box data-testid="catalog-page" sx={{ display: 'flex', flexDirection: 'column', minHeight: '100%' }}>
       <Container maxWidth="lg" sx={{ flexGrow: 1, py: 3, pb: 12 }}>
         {isLoading && (
           <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>

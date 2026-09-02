@@ -14,9 +14,11 @@ import { decrementItem, incrementItem, selectCartItemQuantity } from '../feature
 export default function ProductCard({
   product,
   categoryName,
+  className,
 }: {
   product: Product;
   categoryName: string;
+  className?: string;
 }) {
   const { t, i18n } = useTranslation();
   const dispatch = useAppDispatch();
@@ -31,11 +33,22 @@ export default function ProductCard({
   const handleDecrement = () => dispatch(decrementItem({ productId: product.id }));
 
   return (
-    <Card variant="outlined" sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+    <Card
+      variant="outlined"
+      className={className}
+      data-testid={`product-card-${product.id}`}
+      sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}
+    >
       <ProductImage product={product} alt={localizedName} />
       <CardContent sx={{ display: 'flex', flexDirection: 'column', gap: 1, flexGrow: 1 }}>
         <Typography variant="subtitle1" component="h3" sx={{ flexGrow: 1 }}>
           {localizedName}
+        </Typography>
+        <Typography variant="body2" color="text.secondary">
+          {t('catalog.pricePerUnit', {
+            price: product.unitPrice.toFixed(2),
+            unit: t(`catalog.unit.${product.unit}`),
+          })}
         </Typography>
         <Box
           sx={{

@@ -12,6 +12,12 @@ public class Product
 
     public string? ImagePath { get; set; }
 
+    // ILS, 2 decimal places -- see ProductConfiguration for the SQL Server column type
+    // (decimal(10,2): exact money, not the binary floating point double/float would give).
+    public decimal UnitPrice { get; set; }
+
+    public ProductUnit Unit { get; set; }
+
     public int CategoryId { get; set; }
 
     public Category Category { get; set; } = null!;

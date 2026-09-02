@@ -22,7 +22,7 @@ public class CategoryService : ICategoryService
                 category.NameEn,
                 category.NameHe,
                 category.Products
-                    .Select(product => new ProductDto(product.Id, product.NameEn, product.NameHe, product.ImageUrl, product.ImagePath))
+                    .Select(product => new ProductDto(product.Id, product.NameEn, product.NameHe, product.ImageUrl, product.ImagePath, product.UnitPrice, product.Unit))
                     .ToList()))
             .ToList();
     }
@@ -32,7 +32,7 @@ public class CategoryService : ICategoryService
         var page = await _categoryRepository.GetProductsPageAsync(categoryId, cursor, limit, cancellationToken);
 
         var items = page.Items
-            .Select(product => new ProductDto(product.Id, product.NameEn, product.NameHe, product.ImageUrl, product.ImagePath))
+            .Select(product => new ProductDto(product.Id, product.NameEn, product.NameHe, product.ImageUrl, product.ImagePath, product.UnitPrice, product.Unit))
             .ToList();
 
         return new PagedProductsDto(items, page.NextCursor, new ProductsMetaDto(limit, page.Total));

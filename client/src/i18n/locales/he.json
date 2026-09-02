@@ -15,7 +15,13 @@
     "itemsInCart_other": "{{count}} פריטים בעגלה",
     "addToCart": "הוסף אחד לעגלה",
     "removeFromCart": "הסר אחד מהעגלה",
-    "noProducts": "אין מוצרים בקטגוריה זו."
+    "noProducts": "אין מוצרים בקטגוריה זו.",
+    "unit": {
+      "Kilogram": "ק\"ג",
+      "Piece": "יח'",
+      "Liter": "ליטר"
+    },
+    "pricePerUnit": "₪{{price}} / {{unit}}"
   },
   "checkout": {
     "title": "סיכום ההזמנה",

@@ -81,7 +81,7 @@ export default function CheckoutPage() {
 
   if (confirmed) {
     return (
-      <Container maxWidth="sm" sx={{ py: 6 }}>
+      <Container maxWidth="sm" sx={{ py: 6 }} data-testid="checkout-page">
         <Alert severity="success" sx={{ mb: 2 }}>
           {t('checkout.orderConfirmedTitle')}
         </Alert>
@@ -103,7 +103,7 @@ export default function CheckoutPage() {
 
   if (cartItems.length === 0) {
     return (
-      <Container maxWidth="sm" sx={{ py: 6 }}>
+      <Container maxWidth="sm" sx={{ py: 6 }} data-testid="checkout-page">
         <Typography variant="h5" component="h1" sx={{ mb: 1 }}>
           {t('checkout.cartEmptyTitle')}
         </Typography>
@@ -118,7 +118,7 @@ export default function CheckoutPage() {
   }
 
   return (
-    <Container maxWidth="sm" sx={{ py: 4 }}>
+    <Container maxWidth="sm" sx={{ py: 4 }} data-testid="checkout-page">
       <Typography variant="h5" component="h1" sx={{ mb: 2 }}>
         {t('checkout.title')}
       </Typography>

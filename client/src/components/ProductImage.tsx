@@ -46,9 +46,11 @@ function nextStage(stage: ImageStage, product: Pick<Product, 'imagePath' | 'imag
 export default function ProductImage({
   product,
   alt,
+  className,
 }: {
-  product: Pick<Product, 'imagePath' | 'imageUrl'>;
+  product: Pick<Product, 'id' | 'imagePath' | 'imageUrl'>;
   alt: string;
+  className?: string;
 }) {
   const [stage, setStage] = useState<ImageStage>(() => firstStage(product));
 
@@ -65,11 +67,13 @@ export default function ProductImage({
       src={srcForStage(stage, product)}
       alt={alt}
       loading="lazy"
+      className={className}
+      data-testid={`product-image-${product.id}`}
       onError={() => setStage((current) => nextStage(current, product))}
       sx={{
         width: '100%',
         height: 140,
-        objectFit: 'cover',
+        objectFit: 'contain',
         backgroundColor: 'grey.100',
         borderTopLeftRadius: 'inherit',
         borderTopRightRadius: 'inherit',

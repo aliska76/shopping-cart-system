@@ -15,7 +15,13 @@
     "itemsInCart_other": "{{count}} items in cart",
     "addToCart": "Add one to cart",
     "removeFromCart": "Remove one from cart",
-    "noProducts": "No products in this category."
+    "noProducts": "No products in this category.",
+    "unit": {
+      "Kilogram": "kg",
+      "Piece": "pcs",
+      "Liter": "L"
+    },
+    "pricePerUnit": "₪{{price}} / {{unit}}"
   },
   "checkout": {
     "title": "Order summary",
