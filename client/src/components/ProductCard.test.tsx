@@ -6,7 +6,7 @@ import '../i18n/i18n';
 import { store } from '../app/store';
 import { clearCart } from '../features/cart/cartSlice';
 import ProductCard from './ProductCard';
-import type { Product } from '../api/types';
+import type { Product } from '../types/types';
 
 const product: Product = {
   id: 101,

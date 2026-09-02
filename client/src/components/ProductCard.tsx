@@ -6,7 +6,7 @@ import IconButton from '@mui/material/IconButton';
 import AddIcon from '@mui/icons-material/Add';
 import RemoveIcon from '@mui/icons-material/Remove';
 import { useTranslation } from 'react-i18next';
-import type { Product } from '../api/types';
+import type { Product } from '../types/types';
 import ProductImage from './ProductImage';
 import { useAppDispatch, useAppSelector } from '../app/hooks';
 import { decrementItem, incrementItem, selectCartItemQuantity } from '../features/cart/cartSlice';
@@ -28,7 +28,13 @@ export default function ProductCard({
 
   const handleIncrement = () =>
     dispatch(
-      incrementItem({ productId: product.id, productName: localizedName, categoryName }),
+      incrementItem({
+        productId: product.id,
+        productName: localizedName,
+        categoryName,
+        unitPrice: product.unitPrice,
+        unit: product.unit,
+      }),
     );
   const handleDecrement = () => dispatch(decrementItem({ productId: product.id }));
 

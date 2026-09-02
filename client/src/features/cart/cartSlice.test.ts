@@ -8,18 +8,31 @@ import cartReducer, {
   selectCartItems,
   selectCartItemQuantity,
   selectCartTotalQuantity,
+  selectCartTotalPrice,
   selectCartIsEmpty,
   type CartState,
 } from './cartSlice';
 
 const emptyState: CartState = { items: {} };
 
-const apple = { productId: 15, productName: 'Apples', categoryName: 'Fruits & Vegetables' };
+const apple = {
+  productId: 15,
+  productName: 'Apples',
+  categoryName: 'Fruits & Vegetables',
+  unitPrice: 6.9,
+  unit: 'Kilogram' as const,
+};
 
 describe('cartSlice reducer', () => {
   it('incrementItem adds a new line at quantity 1', () => {
     const state = cartReducer(emptyState, incrementItem(apple));
     expect(state.items[15]).toEqual({ ...apple, quantity: 1 });
+  });
+
+  it('incrementItem snapshots unitPrice/unit onto the line', () => {
+    const state = cartReducer(emptyState, incrementItem(apple));
+    expect(state.items[15].unitPrice).toBe(6.9);
+    expect(state.items[15].unit).toBe('Kilogram');
   });
 
   it('incrementItem on an existing line adds 1 rather than duplicating it', () => {
@@ -60,7 +73,7 @@ describe('cartSlice reducer', () => {
 
   it('clearCart empties every line at once', () => {
     let state = cartReducer(emptyState, incrementItem(apple));
-    state = cartReducer(state, incrementItem({ productId: 11, productName: 'Tomatoes', categoryName: 'Fruits & Vegetables' }));
+    state = cartReducer(state, incrementItem({ productId: 11, productName: 'Tomatoes', categoryName: 'Fruits & Vegetables', unitPrice: 4.5, unit: 'Kilogram' }));
     state = cartReducer(state, clearCart());
     expect(state.items).toEqual({});
   });
@@ -80,7 +93,7 @@ describe('cartSlice selectors', () => {
     let state = cartReducer(emptyState, setItemQuantity({ ...apple, quantity: 3 }));
     state = cartReducer(
       state,
-      setItemQuantity({ productId: 11, productName: 'Tomatoes', categoryName: 'Fruits & Vegetables', quantity: 2 }),
+      setItemQuantity({ productId: 11, productName: 'Tomatoes', categoryName: 'Fruits & Vegetables', unitPrice: 4.5, unit: 'Kilogram', quantity: 2 }),
     );
     expect(selectCartTotalQuantity(state)).toBe(5);
   });
@@ -89,5 +102,25 @@ describe('cartSlice selectors', () => {
     expect(selectCartIsEmpty(emptyState)).toBe(true);
     const state = cartReducer(emptyState, incrementItem(apple));
     expect(selectCartIsEmpty(state)).toBe(false);
+  });
+
+  it('selectCartTotalPrice sums unitPrice × quantity across every line', () => {
+    let state = cartReducer(emptyState, setItemQuantity({ ...apple, quantity: 3 })); // 6.9 * 3 = 20.7
+    state = cartReducer(
+      state,
+      setItemQuantity({
+        productId: 11,
+        productName: 'Tomatoes',
+        categoryName: 'Fruits & Vegetables',
+        unitPrice: 4.5,
+        unit: 'Kilogram',
+        quantity: 2,
+      }), // 4.5 * 2 = 9
+    );
+    expect(selectCartTotalPrice(state)).toBeCloseTo(29.7);
+  });
+
+  it('selectCartTotalPrice is 0 for an empty cart', () => {
+    expect(selectCartTotalPrice(emptyState)).toBe(0);
   });
 });

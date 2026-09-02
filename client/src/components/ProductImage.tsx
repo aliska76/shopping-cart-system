@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import Box from '@mui/material/Box';
-import type { Product } from '../api/types';
+import type { Product } from '../types/types';
 
 const PLACEHOLDER_SRC = '/images/placeholder.svg';
 const CATALOG_API_URL = import.meta.env.VITE_CATALOG_API_URL;

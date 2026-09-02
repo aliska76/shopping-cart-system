@@ -1,5 +1,5 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
-import type { Category } from './types';
+import type { Category } from '../types/types';
 
 /**
  * GET /api/v1/categories returns every category with its products nested and

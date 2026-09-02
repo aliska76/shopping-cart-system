@@ -1,12 +1,16 @@
+<p align="center">
+  <img src="./public/favicon.svg" alt="Client Favicon" width="64" height="64" />
+</p>
+
 # client — Shopping Cart UI
 
-**A note on scope.** This is the two screens the assignment actually asks for (shopping list, order summary) plus a few things beyond the literal wireframe: i18n (en/he) with RTL/LTR, MUI as the component library, and a per-product-card quantity stepper instead of a single category-dropdown → product-dropdown → quantity-field → "add" flow — the stepper *is* the "add to cart" action, so the same requirement (pick a category, pick a product in it, set a quantity, add it) is satisfied with fewer clicks once every product for the selected category is already on screen. See *Design notes / trade-offs* below for why, and *Possible improvements* for what's honestly still missing.
+**A note on scope.** This is the two screens the assignment actually asks for (shopping list, order summary) plus a few things beyond the literal wireframe: i18n (en/he) with RTL/LTR, MUI as the component library, and a per-product-card quantity stepper instead of a single category-dropdown → product-dropdown → quantity-field → "add" flow — the stepper *is* the "add to cart" action, so the same requirement (pick a category, pick a product in it, set a quantity, add it) is satisfied with fewer clicks once every product for the selected category is already on screen.
 
 ### How the two screens work
 
 #### Screen one — shopping list (`/`)
 
-One request on page load, `GET /api/v1/categories`, brings back every category with its products already nested — no follow-up round trip once the page has loaded (see *Design notes* below for why this stays unpaginated at today's catalog size). Tabs across the top filter which categories are shown; picking one filters from data already in the store, not a second request. Each product is a card with its own quantity stepper (`−` / count / `+`) instead of a separate dropdown-and-"add"-button flow — clicking `+` both picks that product and adds a unit to the cart at once, and clicking it again on a product already in the cart tops up its quantity instead of creating a duplicate line; clicking `−` steps it back down, removing the line entirely once it reaches 0. A bar sticky to the bottom of the screen shows the total item count and a "Continue to order" button, disabled until the cart has at least one item in it.
+One request on page load, `GET /api/v1/categories`, brings back every category with its products already nested — no follow-up round trip once the page has loaded. Tabs across the top filter which categories are shown; picking one filters from data already in the store, not a second request. Each product is a card with its own quantity stepper (`−` / count / `+`) instead of a separate dropdown-and-"add"-button flow — clicking `+` both picks that product and adds a unit to the cart at once, and clicking it again on a product already in the cart tops up its quantity instead of creating a duplicate line; clicking `−` steps it back down, removing the line entirely once it reaches 0. A bar sticky to the bottom of the screen shows the total item count and a "Continue to order" button, disabled until the cart has at least one item in it.
 
 #### Screen two — order summary (`/checkout`)
 
@@ -14,57 +18,64 @@ The cart is shown read-only first, then the three required fields (full name, em
 
 ### 1. Configure environment variables — from `client/`
 
-```
+```bash
 cp .env.example .env
+
 ```
 
 Defaults already point at both APIs' default local ports (`server-catalog` on `5080`, `server-orders` on `3001`) — only edit `.env` if you're running either API somewhere else.
 
 ### 2. Install dependencies — from `client/`
 
-```
+```bash
 npm install
+
 ```
 
 ### 3. Run — from `client/`
 
-```
+```bash
 npm run dev
+
 ```
 
 Opens on `http://localhost:5173` (Vite's default). Both `server-catalog` and `server-orders` need to already be running for the catalog to load and orders to submit — see their own READMEs.
 
 ### Tests
 
-```
+```bash
 npm test
+
 ```
 
-Vitest + React Testing Library. Two pure-logic suites (`cartSlice.test.ts`, `checkoutValidation.test.ts` — reducer/selector behavior and form validation, no DOM involved, the same "test the real logic, not a pass-through" principle as `cursor.util.spec.ts` on the `server-orders` side) plus one component test (`ProductCard.test.tsx`) that renders against a real Redux store and clicks through the increment/decrement stepper, since that interaction *is* the one truly custom piece of UI logic in this app.
+Vitest + React Testing Library. Two pure-logic suites (`cartSlice.test.ts`, `checkoutValidation.test.ts` — reducer/selector behavior and form validation, no DOM involved) plus two component tests: `ProductCard.test.tsx` (renders against a real Redux store, clicks through the increment/decrement stepper) and `CheckoutPage.test.tsx` (renders the order summary and checks the per-line unit price/total and the grand total).
 
-All 21 tests pass (confirmed on a real run). One cosmetic thing you'll see in `ProductCard.test.tsx`'s stderr: `Warning: An update to ForwardRef(ButtonBase) inside a test was not wrapped in act(...)`. This isn't a bug in this project's code — it's a long-standing, still-open upstream interaction between MUI's `ButtonBase` (which `IconButton` is built on) and React Testing Library ([mui/material-ui#34666](https://github.com/mui/material-ui/issues/34666), open, unresolved even by MUI's own maintainers as of this writing). It doesn't affect what the test actually verifies — all three `ProductCard` assertions pass — so it's noted here rather than "fixed" with an unverified workaround for an issue MUI itself hasn't nailed down.
+28 tests total. Verified by `tsc --noEmit` (clean) after this round's changes — `vitest run` itself couldn't be confirmed from here (`Cannot find native binding` for `@rolldown/binding-wasm32-wasi`, a known npm optional-dependency bug, [npm/cli#4828](https://github.com/npm/cli/issues/4828); a full `node_modules`/`package-lock.json` reinstall was attempted but the missing platform binary isn't reachable from this environment either) — run `npm test` locally to confirm.
+
+*(Note on test output: One cosmetic warning regarding `ButtonBase` from MUI may appear in stderr during `ProductCard.test.tsx` due to a known upstream React Testing Library interaction, which does not affect test assertions.)*
+
+---
 
 ### Design notes / trade-offs
 
-- **MUI as the component library, with `@mui/stylis-plugin-rtl` for RTL.** The original plan (see `architecture.md`) was hand-written CSS with logical properties; MUI already emits logical properties from its own `sx`/style system, so the actual RTL/LTR mechanism ends up being the same idea — an Emotion cache with the RTL stylis plugin swapped in when the language is Hebrew (`ThemeDirectionProvider.tsx`), not a second physical-properties stylesheet maintained by hand. Deliberately `@mui/stylis-plugin-rtl` (MUI's own scoped package, versioned alongside `@mui/material`) rather than the older standalone `stylis-plugin-rtl` it's commonly documented as using — that package's last publish was 2021; the MUI-scoped fork is the one still actually maintained.
-- **react-router, two routes (`/`, `/checkout`), not a single component with local step state.** A real back button, a real URL for each screen, and no extra state to invent for "which screen am I on" — the trade-off is one more dependency for what's currently a two-screen app, which seemed worth it for behavior a reviewer would actually try (the browser back button).
-- **The quantity stepper on each product card is the "add to cart" action.** The assignment's wireframe implies one sequential flow: choose a category, choose a product in it, set a quantity, click a single "add" button. Every category's products are already visible on screen instead (see `architecture.md` point 8 for the original rationale, carried over here into actual code) — clicking + on a card is both "pick this product" and "add to cart" at once, and clicking it again increases the quantity instead of requiring a separate field. The same three requirements (category → matching product → quantity → added to cart, with the screen updating accordingly) are satisfied, just compressed into fewer steps.
-- **Cart state lives in Redux (`cartSlice`), normalized by `productId`** (`{ items: { [productId]: { productId, productName, categoryName, quantity } } }`) — the same shape `POST /api/v1/orders` expects for its `items` array, so `CheckoutPage` maps the cart straight into the request body with no reshaping. Upsert-increment (`incrementItem`) rather than always pushing a new line is what makes clicking + on a card already in the cart update its quantity instead of duplicating it.
-- **RTK Query for both APIs (`catalogApi`, `ordersApi`), one `createApi` each with its own `baseUrl` from `VITE_CATALOG_API_URL`/`VITE_ORDERS_API_URL`.** `catalogApi.getCategories` hits the plain unpaginated `GET /api/v1/categories` (not the cursor-paginated per-category products endpoint) — the whole point of that endpoint being unpaginated is that at 3 categories/18 products, everything the shopping-list screen needs arrives in one request; see `server-catalog/README.md`'s *Design notes* for why that endpoint stayed unpaginated on purpose.
-- **i18n via `i18next`/`react-i18next`, but no `i18next-browser-languagedetector`.** The language set is exactly two (`en`/`he`); one `localStorage` key plus `navigator.language` as a first-run fallback (`i18n.ts`) covers language persistence and detection without a dependency for it — the same "no framework unless it earns its keep" call already made on both backends (no Serilog, no Polly).
-- **Product images: the same `imagePath`/`imageUrl`/local-placeholder fallback chain already documented on the `server-catalog` side, now actually wired up in `ProductImage.tsx`, plus real lazy loading (`loading="lazy"`).** `server-catalog/README.md`'s *Possible improvements* listed lazy loading as blocked on `client/` existing — it isn't anymore; that bullet should come out of both backend READMEs once this is merged in (see `architecture.md`).
-- **Each product card shows its price per unit (`₪{{price}} / {{unit}}`), pulled straight from `server-catalog`'s `UnitPrice`/`Unit` fields — not hardcoded or computed client-side.** `src/api/types.ts` adds a `ProductUnit = 'Kilogram' | 'Piece' | 'Liter'` union type — the natural client-side equivalent of `server-catalog`'s `ProductUnit` C# enum now that the API serializes it as a string (`Program.cs` registers a `JsonStringEnumConverter`; see `server-catalog/README.md`'s *Design notes*) — rather than a second numeric enum with its own client-side mapping table to keep in sync by hand. The label itself is translated, not hardcoded to English units: `catalog.unit.{Kilogram,Piece,Liter}` (`kg`/`pcs`/`L` in `en.json`, `ק"ג`/`יח'`/`ליטר` in `he.json`) composed into `catalog.pricePerUnit` via a nested `t()` call in `ProductCard.tsx`, the same translation-key pattern every other piece of catalog copy already uses.
-- **Types for both APIs' request/response shapes are hand-written (`src/api/types.ts`), not generated from an OpenAPI spec.** Both contracts are small and stable enough that a codegen step would be more moving parts than this project needs — the same call already made for not adding an OpenAPI client generator on either backend.
-- **`client` also got a multi-stage `Dockerfile`** (Node build stage — `npm ci && npm run build` — → slim `nginx:1.31.4-alpine` runtime stage serving the static `dist/` output, plus `nginx.conf` for react-router's SPA fallback) — see *Running everything in Docker* in the root README for how to actually run it. Not part of the default `docker compose up -d` (gated behind Compose's `full` profile) — `npm run dev` stays the faster loop for actual iteration. The two `VITE_*` values are baked into the JS bundle at build time as Docker build args in `docker-compose.yml`, not read at container runtime — same constraint Vite always has, container or not.
-- **Written without npm registry access, then fixed against a real `npm run build`.** I don't have network access to the npm registry in either of my execution environments (confirmed directly — `npm install`/`npm create vite` both return `403 Forbidden` in the cloud container and in the device-bridge shell on your machine) — the same limitation `server-catalog` already had with `dotnet`/`docker`, just here for `npm install` itself rather than only `build`/`test`. Every file was written by hand first (real, registry-checked dependency versions and peer-dependency ranges — see the version pins in `package.json`), and after `npm install && npm run build` were actually run on your machine, the resulting 96 TypeScript errors traced back to four root causes, all now fixed: missing `"skipLibCheck": true` in both `tsconfig.app.json`/`tsconfig.node.json` (the ecosystem-standard setting for not re-checking every dependency's own `.d.ts` files, which was the overwhelming majority of the 96); `"@testing-library/jest-dom"` listed in `tsconfig.app.json`'s `types` array pulling in a `/// <reference types="jest" />` that `skipLibCheck` doesn't suppress (removed — the matcher types still come from `import '@testing-library/jest-dom/vitest'` in `src/test/setup.ts`); `stylis@4.4.0` genuinely shipping no TypeScript declarations of its own, which broke our direct `import { prefixer } from 'stylis'` in `ThemeDirectionProvider.tsx` (fixed with a small local ambient declaration, `src/types/stylis.d.ts`, rather than `@types/stylis`, which is pinned to an older `stylis` line than the one this project depends on); and a genuine MUI 9.4.0 `Stack` prop-typing incompatibility in `ProductCard.tsx` (`direction`/`alignItems`/`justifyContent`/`spacing` didn't match either overload) — same fix as the `Grid` avoidance elsewhere, swapped for `Box` + `sx` flex layout. `npm install` and `npm run build` have now both been run for real; `npm test` was run next and caught a fifth, unrelated issue: `vitest run` crashed before any test executed, with `TypeError: webidl.util.markAsUncloneable is not a function` inside `node_modules/undici/lib/web/cache/cachestorage.js`, loaded transitively by `jsdom`. Traced to a real version mismatch, not a bug in this project's own code: `jsdom@30.0.1` (the version originally pinned here) depends on `undici@^8.9.0`, and undici 8.0.3+ calls `node:worker_threads.markAsUncloneable`, a function Node only added in v22.10.0/v23.0.0 ([Node docs](https://nodejs.org/api/worker_threads.html), [nodejs/undici#5024](https://github.com/nodejs/undici/issues/5024)) — jsdom 30's own `engines` field (`^22.22.2 || ^24.15.0 || >=26.0.0`) confirms it requires a Node newer than that. Your `node -v` is `v20.19.5`, well below that floor. Rather than asking you to upgrade Node just to run this project's tests, `jsdom` is now pinned to `^29.1.0` instead — the most recent jsdom release whose `engines` field (`^20.19.0 || ^22.13.0 || >=24.0.0`) still covers Node 20.19.x, and which depends on `undici@^7.25.0` (predates the breaking call entirely), rather than staying on the newest jsdom and requiring everyone who runs this project's tests to be on a very recent Node. Run `npm install` once more to pick up the new `jsdom` in `package-lock.json`, then `npm test` again.
+* **MUI as the component library, with `@mui/stylis-plugin-rtl` for RTL.** Uses an Emotion cache with the RTL stylis plugin swapped in dynamically based on the active language (`ThemeDirectionProvider.tsx`). We use the official MUI-scoped package (`@mui/stylis-plugin-rtl`) for long-term maintenance compatibility.
+* **React Router with two routes (`/`, `/checkout`).** Provides proper browser history, native back-button support, and distinct URLs for each screen without manual state management for view switching.
+* **The quantity stepper on each product card acts as the "add to cart" action.** By displaying all products per category simultaneously, clicking `+` immediately initializes and increments the item in the cart, compressing the traditional multi-step flow into a single, intuitive interaction.
+* **Normalized Redux cart state (`cartSlice`).** State is structured by `productId` (`{ items: { [productId]: { ... } } }`), mirroring the exact payload shape expected by `POST /api/v1/orders` for seamless request mapping.
+* **RTK Query for API integration (`catalogApi`, `ordersApi`).** Leverages two distinct `createApi` instances configured with respective `VITE_CATALOG_API_URL` and `VITE_ORDERS_API_URL` environment variables.
+* **Lightweight i18n via `i18next`/`react-i18next`.** Language persistence relies on `localStorage` with `navigator.language` as a fallback, avoiding heavy localization detector dependencies.
+* **Robust product image fallback chain.** Implements `imagePath`/`imageUrl`/local-placeholder resolution paired with native browser lazy loading (`loading="lazy"`).
+* **Type-safe unit mapping.** Uses a shared `ProductUnit` union type (`'Kilogram' | 'Piece' | 'Liter'`) mapped directly to localized translation keys (`catalog.unit.*`), ensuring UI units remain consistent with backend enums.
+* **Multi-stage Docker support.** Includes a `Dockerfile` utilizing a Node build stage transitioning to a lightweight `nginx:alpine` runtime serving static assets, complete with SPA fallback routing rules.
+* **Order summary shows unit price, a per-line total, and a grand total.** Cart lines snapshot `unitPrice`/`unit` from the product at the moment they're added (`cartSlice.ts`), not re-read live from the catalog — so `/checkout` reflects the price the shopper actually saw. Each line reuses the same `catalog.pricePerUnit` translation key `ProductCard` already shows; a new `selectCartTotalPrice` selector sums `unitPrice × quantity` across every line for the grand total. Display-only — `POST /api/v1/orders` still sends just `productId`/`productName`/`categoryName`/`quantity`, since `server-orders` doesn't store prices at all.
 
-- **`AppHeader` (`src/components/AppHeader.tsx`) is its own component, split out of `App.tsx`.** The cart icon, title, and `LanguageSwitcher` are self-contained markup with no dependency on routing or the one global side effect (`document.documentElement.dir`/`lang`) that's the rest of what `App.tsx` does — pulling it out keeps `App.tsx` about routing/layout, not header markup.
-- **`className` and `data-testid` on every component with exactly one meaningful root DOM node** (`ProductCard`, `ProductImage`, `LanguageSwitcher`, `LtrRegion`, `AppHeader`) — `className` so a consumer can target or restyle a component from outside without reaching for an `sx` override on an internal implementation detail; `data-testid` so the same components are queryable by test tooling without depending on visible text (which changes per language) or DOM structure. `ProductCard`/`ProductImage` scope theirs to the product (`product-card-${id}`, `product-image-${id}`) since many render side by side on the catalog screen — a static id would collide and break `getByTestId`. `CatalogPage`, `CheckoutPage` and the app shell (`App.tsx`) get a `data-testid` too, but not a `className` prop: React Router renders them with no props today (`<Route element={<CatalogPage />} />`), so a `className` prop there would be dead code nothing ever passes. `ThemeDirectionProvider` gets neither — it renders no DOM node of its own, only context providers (`CacheProvider`/`ThemeProvider`/`CssBaseline`) around its children.
+---
+
 ### Possible improvements
 
-Scoped out for a take-home assignment — framed as what I'd add next to take this from a demo to something production-ready, not just gaps left unspoken.
+Scoped out for a take-home assignment — framed as what I'd add next to take this from a demo to something production-ready:
 
-- **Add an OpenAPI-generated client for both APIs instead of hand-written types**, once either contract starts changing often enough that keeping `src/api/types.ts` in sync by hand becomes real work.
-- **Add end-to-end tests (Playwright) against real running instances of both APIs**, covering the full add-to-cart → checkout → confirmed-order flow — the current tests cover the cart/validation logic and one component in isolation, not the whole flow wired together.
-- **Persist the cart across a page reload** (`localStorage`, the same mechanism already used for the language preference) — right now refreshing mid-shop loses the cart, same as most Redux-only setups without an explicit persistence layer.
-- **Add a proper Hebrew-friendly web font** (e.g. Assistant or Rubik) instead of the MUI default — Roboto renders Hebrew adequately but wasn't designed for it.
+* **Add an OpenAPI-generated client** for both APIs instead of hand-written types, once the contracts stabilize or scale.
+* **Add end-to-end tests (Playwright)** against real running instances of both APIs to cover the complete checkout lifecycle.
+* **Persist the cart across page reloads** using `localStorage`.
+* **Add a dedicated Hebrew-friendly web font** (e.g., Assistant or Rubik) to replace the default MUI typography for Hebrew views.

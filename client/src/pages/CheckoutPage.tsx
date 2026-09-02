@@ -13,10 +13,10 @@ import ListItemText from '@mui/material/ListItemText';
 import Divider from '@mui/material/Divider';
 import Paper from '@mui/material/Paper';
 import { useAppDispatch, useAppSelector } from '../app/hooks';
-import { clearCart, selectCartItems } from '../features/cart/cartSlice';
+import { clearCart, selectCartItems, selectCartTotalPrice } from '../features/cart/cartSlice';
 import { clearCheckoutForm, setCheckoutField } from '../features/checkout/checkoutFormSlice';
 import { useCreateOrderMutation } from '../api/ordersApi';
-import type { CreateOrderResponse } from '../api/types';
+import type { CreateOrderResponse } from '../types/types';
 import {
   validateCheckoutForm,
   type CheckoutFormValues as FormValues,
@@ -28,6 +28,7 @@ export default function CheckoutPage() {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const cartItems = useAppSelector((state) => selectCartItems(state.cart));
+  const cartTotalPrice = useAppSelector((state) => selectCartTotalPrice(state.cart));
   const [createOrder, { isLoading }] = useCreateOrderMutation();
 
   // Values live in Redux (checkoutFormSlice), not component state, specifically so they
@@ -130,13 +131,37 @@ export default function CheckoutPage() {
           </ListItem>
           <Divider component="li" />
           {cartItems.map((item) => (
-            <ListItem key={item.productId}>
-              <ListItemText primary={item.productName} secondary={item.categoryName} />
-              <Typography>
-                {t('checkout.quantity')}: {item.quantity}
-              </Typography>
+            <ListItem
+              key={item.productId}
+              data-testid={`order-summary-item-${item.productId}`}
+              sx={{ flexDirection: 'column', alignItems: 'stretch', gap: 0.5 }}
+            >
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
+                <ListItemText primary={item.productName} secondary={item.categoryName} />
+                <Typography>
+                  {t('checkout.quantity')}: {item.quantity}
+                </Typography>
+              </Box>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
+                <Typography variant="body2" color="text.secondary">
+                  {t('catalog.pricePerUnit', {
+                    price: item.unitPrice.toFixed(2),
+                    unit: t(`catalog.unit.${item.unit}`),
+                  })}
+                </Typography>
+                <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                  {t('checkout.lineTotal', { total: (item.unitPrice * item.quantity).toFixed(2) })}
+                </Typography>
+              </Box>
             </ListItem>
           ))}
+          <Divider component="li" />
+          <ListItem data-testid="order-summary-total" sx={{ display: 'flex', justifyContent: 'space-between' }}>
+            <Typography sx={{ fontWeight: 'bold' }}>{t('checkout.totalLabel')}</Typography>
+            <Typography sx={{ fontWeight: 'bold' }}>
+              {t('checkout.total', { total: cartTotalPrice.toFixed(2) })}
+            </Typography>
+          </ListItem>
         </List>
       </Paper>
 
