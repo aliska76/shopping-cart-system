@@ -2,6 +2,16 @@
 
 **A note on scope.** This is the two screens the assignment actually asks for (shopping list, order summary) plus a few things beyond the literal wireframe: i18n (en/he) with RTL/LTR, MUI as the component library, and a per-product-card quantity stepper instead of a single category-dropdown → product-dropdown → quantity-field → "add" flow — the stepper *is* the "add to cart" action, so the same requirement (pick a category, pick a product in it, set a quantity, add it) is satisfied with fewer clicks once every product for the selected category is already on screen. See *Design notes / trade-offs* below for why, and *Possible improvements* for what's honestly still missing.
 
+### How the two screens work
+
+#### Screen one — shopping list (`/`)
+
+One request on page load, `GET /api/v1/categories`, brings back every category with its products already nested — no follow-up round trip once the page has loaded (see *Design notes* below for why this stays unpaginated at today's catalog size). Tabs across the top filter which categories are shown; picking one filters from data already in the store, not a second request. Each product is a card with its own quantity stepper (`−` / count / `+`) instead of a separate dropdown-and-"add"-button flow — clicking `+` both picks that product and adds a unit to the cart at once, and clicking it again on a product already in the cart tops up its quantity instead of creating a duplicate line; clicking `−` steps it back down, removing the line entirely once it reaches 0. A bar sticky to the bottom of the screen shows the total item count and a "Continue to order" button, disabled until the cart has at least one item in it.
+
+#### Screen two — order summary (`/checkout`)
+
+The cart is shown read-only first, then the three required fields (full name, email, address). Validation runs on submit — client-side (`checkoutValidation.ts`) and, independently, server-side too once the request actually reaches `server-orders` (`CreateOrderDto` enforces the same three checks with `class-validator`, regardless of what the client already caught). "Confirm order" posts to the Orders API; on success the screen shows the confirmation with the new order's id and empties the cart. Landing on `/checkout` with nothing in the cart (a refresh, or the URL typed directly) doesn't silently redirect — it shows an explicit empty-cart message with a button back to the catalog instead, since a silent redirect could read as the page failing to load rather than telling you why there's nothing to check out.
+
 ### 1. Configure environment variables — from `client/`
 
 ```
@@ -55,5 +65,3 @@ Scoped out for a take-home assignment — framed as what I'd add next to take th
 - **Add end-to-end tests (Playwright) against real running instances of both APIs**, covering the full add-to-cart → checkout → confirmed-order flow — the current tests cover the cart/validation logic and one component in isolation, not the whole flow wired together.
 - **Persist the cart across a page reload** (`localStorage`, the same mechanism already used for the language preference) — right now refreshing mid-shop loses the cart, same as most Redux-only setups without an explicit persistence layer.
 - **Add a proper Hebrew-friendly web font** (e.g. Assistant or Rubik) instead of the MUI default — Roboto renders Hebrew adequately but wasn't designed for it.
-- **Add a CI pipeline** that runs `npm run build`/`npm test` on every push/PR — both are run by hand right now.
-- **Add Dependabot or Renovate** to flag an outdated package or Node version automatically, instead of relying on someone noticing.

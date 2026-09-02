@@ -10,6 +10,7 @@ import Button from '@mui/material/Button';
 import CircularProgress from '@mui/material/CircularProgress';
 import Paper from '@mui/material/Paper';
 import Container from '@mui/material/Container';
+import LtrRegion from '../theme/LtrRegion';
 import { useGetCategoriesQuery } from '../api/catalogApi';
 import ProductCard from '../components/ProductCard';
 import { useAppSelector } from '../app/hooks';
@@ -54,22 +55,36 @@ export default function CatalogPage() {
 
         {categories && (
           <>
-            <Tabs
-              value={selected}
-              onChange={(_event, value: number | typeof ALL) => setSelected(value)}
-              variant="scrollable"
-              scrollButtons="auto"
-              sx={{ mb: 3 }}
-            >
-              <Tab label={t('catalog.allCategories')} value={ALL} />
-              {categories.map((category) => (
-                <Tab
-                  key={category.id}
-                  label={i18n.language === 'he' ? category.nameHe : category.nameEn}
-                  value={category.id}
-                />
-              ))}
-            </Tabs>
+            {/* Wrapped in LtrRegion so the category order stays physically fixed across
+                languages instead of the tab strip mirroring on every switch to Hebrew (see
+                LtrRegion.tsx for why a plain CSS override isn't enough for Tabs specifically).
+                Font bumped up from MUI's small, all-caps default -- easy to miss as a row of
+                actual navigation instead of a caption. */}
+            <LtrRegion>
+              <Tabs
+                value={selected}
+                onChange={(_event, value: number | typeof ALL) => setSelected(value)}
+                variant="scrollable"
+                scrollButtons="auto"
+                sx={{
+                  mb: 3,
+                  '& .MuiTab-root': {
+                    fontSize: '1rem',
+                    fontWeight: 600,
+                    textTransform: 'none',
+                  },
+                }}
+              >
+                <Tab label={t('catalog.allCategories')} value={ALL} />
+                {categories.map((category) => (
+                  <Tab
+                    key={category.id}
+                    label={i18n.language === 'he' ? category.nameHe : category.nameEn}
+                    value={category.id}
+                  />
+                ))}
+              </Tabs>
+            </LtrRegion>
 
             {visibleCategories.map((category) => {
               const categoryName = i18n.language === 'he' ? category.nameHe : category.nameEn;

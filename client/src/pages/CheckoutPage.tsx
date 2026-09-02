@@ -14,6 +14,7 @@ import Divider from '@mui/material/Divider';
 import Paper from '@mui/material/Paper';
 import { useAppDispatch, useAppSelector } from '../app/hooks';
 import { clearCart, selectCartItems } from '../features/cart/cartSlice';
+import { clearCheckoutForm, setCheckoutField } from '../features/checkout/checkoutFormSlice';
 import { useCreateOrderMutation } from '../api/ordersApi';
 import type { CreateOrderResponse } from '../api/types';
 import {
@@ -29,14 +30,18 @@ export default function CheckoutPage() {
   const cartItems = useAppSelector((state) => selectCartItems(state.cart));
   const [createOrder, { isLoading }] = useCreateOrderMutation();
 
-  const [values, setValues] = useState<FormValues>({ fullName: '', email: '', address: '' });
+  // Values live in Redux (checkoutFormSlice), not component state, specifically so they
+  // survive a trip back to the catalog and forward to /checkout again instead of the form
+  // wiping itself out on remount. Errors stay local -- a fresh visit to the form shouldn't
+  // show validation messages left over from a previous submit attempt.
+  const values = useAppSelector((state) => state.checkoutForm);
   const [errors, setErrors] = useState<FormErrors>({});
   const [submitError, setSubmitError] = useState(false);
   const [confirmed, setConfirmed] = useState<CreateOrderResponse | null>(null);
 
   const handleChange =
     (field: keyof FormValues) => (event: ChangeEvent<HTMLInputElement>) => {
-      setValues((prev) => ({ ...prev, [field]: event.target.value }));
+      dispatch(setCheckoutField({ field, value: event.target.value }));
     };
 
   const handleSubmit = async (event: FormEvent) => {
@@ -65,6 +70,10 @@ export default function CheckoutPage() {
       }).unwrap();
       setConfirmed(response);
       dispatch(clearCart());
+      // Deliberately NOT clearing checkoutForm here -- the confirmation screen right below
+      // still reads values.fullName for its "thanks, <name>" message, and clearing here would
+      // wipe it out before that render. Cleared instead when the user actually starts a new
+      // order (see the button below), which is also the more correct moment for it.
     } catch {
       setSubmitError(true);
     }
@@ -79,7 +88,13 @@ export default function CheckoutPage() {
         <Typography sx={{ mb: 3 }}>
           {t('checkout.orderConfirmedBody', { fullName: values.fullName, orderId: confirmed.id })}
         </Typography>
-        <Button variant="contained" onClick={() => navigate('/')}>
+        <Button
+          variant="contained"
+          onClick={() => {
+            dispatch(clearCheckoutForm());
+            navigate('/');
+          }}
+        >
           {t('checkout.startNewOrder')}
         </Button>
       </Container>

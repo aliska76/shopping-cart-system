@@ -25,7 +25,13 @@ export default function App() {
     <BrowserRouter>
       <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
         <AppBar position="static" color="primary">
-          <Toolbar sx={{ display: 'flex', justifyContent: 'space-between' }}>
+          {/* Pinned to a physical LTR layout regardless of the current language -- logo/title
+              stay on the physical left, LanguageSwitcher on the physical right in both en and
+              he, rather than the header itself mirroring on every language switch. Hebrew text
+              inside still renders correctly (the Unicode bidi algorithm orders characters
+              within a run on its own; `direction` here only pins the *flex layout*, not glyph
+              order), so this doesn't affect how the Hebrew title itself reads. */}
+          <Toolbar sx={{ display: 'flex', justifyContent: 'space-between', direction: 'ltr' }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
               <ShoppingCartIcon />
               <Typography variant="h6" component="h1">
