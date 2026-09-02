@@ -1,7 +1,7 @@
 {
   "name": "server-orders",
   "version": "0.1.0",
-  "description": "Orders API for shopping-cart-system \u2014 NestJS + Elasticsearch.",
+  "description": "Orders API for shopping-cart-system — NestJS + Elasticsearch.",
   "private": true,
   "scripts": {
     "build": "nest build",
@@ -10,7 +10,8 @@
     "start:prod": "node dist/main",
     "test": "jest",
     "test:watch": "jest --watch",
-    "test:cov": "jest --coverage"
+    "test:cov": "jest --coverage",
+    "test:e2e": "jest --config ./test/jest-e2e.json"
   },
   "dependencies": {
     "@elastic/elasticsearch": "^9.4.2",
@@ -32,8 +33,10 @@
     "@types/express": "^5.0.0",
     "@types/jest": "^29.5.14",
     "@types/node": "^22.10.2",
+    "@types/supertest": "^6.0.3",
     "jest": "^29.7.0",
     "source-map-support": "^0.5.21",
+    "supertest": "^7.2.2",
     "ts-jest": "^29.2.5",
     "ts-loader": "^9.5.1",
     "ts-node": "^10.9.2",

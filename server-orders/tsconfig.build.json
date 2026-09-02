@@ -4,7 +4,8 @@
     "node_modules",
     "dist",
     "**/*.spec.ts",
-    "**/*.mock.ts"
+    "**/*.mock.ts",
+    "test"
   ],
   "compilerOptions": {
     "incremental": false

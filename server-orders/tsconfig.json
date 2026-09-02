@@ -16,8 +16,9 @@
     "strictBindCallApply": false,
     "forceConsistentCasingInFileNames": false,
     "noFallthroughCasesInSwitch": false,
-    "rootDir": "./src",
+    "rootDir": ".",
     "strictPropertyInitialization": false,
     "types": ["node", "jest"]
-  }
+  },
+  "include": ["src/**/*", "test/**/*"]
 }
