@@ -12,6 +12,8 @@ Each service has its own README with setup, tests and design notes — see [Serv
 
 The Elasticsearch mapping file the assignment asks for is server-orders/mapping.json. The order service creates the index from that exact file on first start, so the file in the repo is the mapping actually in use — not a copy that can drift.
 
+**A note on scope.** Each service goes a bit beyond what its own two endpoints (or one page) strictly need — a rate limiter and structured logging in `server-catalog`, cart persistence and a styles/component split in `client` and etc. None of it is required by the assignment; it's there because it's what a system meant to run past a demo would actually need, and every addition is explained in that service's own *Design notes*, linked below. Where something further (a distributed cache, a message queue, auth) seemed disproportionate for this scope, it's listed instead of built — see *Possible improvements — system-wide* at the bottom of this file.
+
 ## Prerequisites
 
 This needs the **.NET SDK 10** and **Node v20.19.5 or later** installed — `client`'s test toolchain (`jsdom`/`undici`) needs at least that Node version to run `npm test`.
