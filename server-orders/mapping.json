@@ -1,0 +1,40 @@
+{
+  "settings": {
+    "number_of_shards": 1,
+    "number_of_replicas": 0
+  },
+  "mappings": {
+    "dynamic": "strict",
+    "properties": {
+      "id": { "type": "keyword" },
+      "fullName": {
+        "type": "text",
+        "fields": {
+          "keyword": { "type": "keyword", "ignore_above": 256 }
+        }
+      },
+      "email": { "type": "keyword" },
+      "address": {
+        "type": "text",
+        "fields": {
+          "keyword": { "type": "keyword", "ignore_above": 512 }
+        }
+      },
+      "createdAt": { "type": "date" },
+      "items": {
+        "type": "nested",
+        "properties": {
+          "productId": { "type": "integer" },
+          "productName": {
+            "type": "text",
+            "fields": {
+              "keyword": { "type": "keyword", "ignore_above": 256 }
+            }
+          },
+          "categoryName": { "type": "keyword" },
+          "quantity": { "type": "integer" }
+        }
+      }
+    }
+  }
+}

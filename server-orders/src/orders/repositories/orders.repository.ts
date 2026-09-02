@@ -2,6 +2,8 @@ import { Inject, Injectable, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Client } from '@elastic/elasticsearch';
 import { randomUUID } from 'crypto';
+import { readFileSync } from 'fs';
+import { join } from 'path';
 import { ELASTICSEARCH_CLIENT } from '../../elasticsearch/elasticsearch-client.provider';
 import { JsonLogger } from '../../common/logging/json-logger';
 import { CreateOrderDto } from '../dto/create-order.dto';
@@ -17,35 +19,42 @@ interface OrderDocument {
   createdAt: string;
 }
 
+// The mapping the assignment asks for ("if you chose Elasticsearch, please send a mapping
+// file") lives in ../../../mapping.json, not as an object here -- loaded once below and used
+// as-is to create the index, so that file is the mapping actually in effect, not a
+// hand-maintained copy of it that can silently drift out of sync with the real one.
+//
 // Nested (not object!) for items -- flattening it to plain "object" type would silently
 // break correctness for queries against individual line items (e.g. "orders containing
 // product X with quantity > 2"), since Elasticsearch would lose the association between a
-// single item's fields once several items sit in the same array. See architecture.md.
-const INDEX_MAPPING = {
-  properties: {
-    // A real, sortable field -- not just relying on Elasticsearch's own "_id". Sorting on
-    // "_id" fails outright ("Fielddata access on the _id field is disallowed"): Elasticsearch
-    // doesn't build doc values for "_id" by default, since sorting on it is discouraged for
-    // performance reasons. search_after needs a genuinely unique tiebreaker alongside
-    // "createdAt" (two orders can share a timestamp), so the same UUID already used as the
-    // document "_id" (see create() below) is also stored here as an ordinary "keyword" field,
-    // which *does* get doc values, and that's what findPage() actually sorts on.
-    id: { type: 'keyword' },
-    fullName: { type: 'text' },
-    email: { type: 'keyword' },
-    address: { type: 'text' },
-    createdAt: { type: 'date' },
-    items: {
-      type: 'nested',
-      properties: {
-        productId: { type: 'integer' },
-        productName: { type: 'text' },
-        categoryName: { type: 'keyword' },
-        quantity: { type: 'integer' },
-      },
-    },
-  },
-};
+// single item's fields once several items sit in the same array. See mapping.json and
+// architecture.md.
+//
+// "id" is a real, sortable field -- not just relying on Elasticsearch's own "_id". Sorting on
+// "_id" fails outright ("Fielddata access on the _id field is disallowed"): Elasticsearch
+// doesn't build doc values for "_id" by default, since sorting on it is discouraged for
+// performance reasons. search_after needs a genuinely unique tiebreaker alongside
+// "createdAt" (two orders can share a timestamp), so the same UUID already used as the
+// document "_id" (see create() below) is also stored here as an ordinary "keyword" field,
+// which *does* get doc values, and that's what findPage() actually sorts on.
+interface MappingFile {
+  settings?: Record<string, unknown>;
+  mappings: Record<string, unknown>;
+}
+
+/**
+ * Reads mapping.json relative to process.cwd(), not __dirname -- __dirname would point into
+ * dist/orders/repositories at runtime after compilation, and mapping.json isn't (and
+ * shouldn't be) copied into dist/ by the TypeScript build. Every way this service actually
+ * starts (`npm run start`/`start:dev`/`start:prod`, and the Docker image's `WORKDIR /app` +
+ * `CMD ["node", "dist/src/main.js"]`) runs with the service root as the working directory, so
+ * process.cwd() always resolves to the same place mapping.json lives -- see the Dockerfile's
+ * runtime stage, which copies mapping.json there explicitly for exactly this reason.
+ */
+function loadIndexFile(): MappingFile {
+  const raw = readFileSync(join(process.cwd(), 'mapping.json'), 'utf-8');
+  return JSON.parse(raw) as MappingFile;
+}
 
 /**
  * The Infrastructure-layer equivalent of server-catalog's CategoryRepository: the only class
@@ -87,11 +96,15 @@ export class OrdersRepository implements OnModuleInit {
     const exists = await this.client.indices.exists({ index: this.indexName });
 
     if (!exists) {
-      // cast: the ES client's mapping types are stricter than TS can cleanly infer from a
-      // plain literal object here; the shape above matches the real Elasticsearch mapping API.
+      const { settings, mappings } = loadIndexFile();
+
+      // cast: the ES client's settings/mapping types are stricter than TS can cleanly infer
+      // from a plain object parsed out of JSON at runtime; the shape in mapping.json matches
+      // the real Elasticsearch index-creation API for both.
       await this.client.indices.create({
         index: this.indexName,
-        mappings: INDEX_MAPPING as any,
+        settings: settings as any,
+        mappings: mappings as any,
       });
     }
   }

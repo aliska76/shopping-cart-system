@@ -22,6 +22,10 @@ COPY package.json package-lock.json ./
 RUN npm ci --omit=dev
 
 COPY --from=build /app/dist ./dist
+# mapping.json isn't compiled -- OrdersRepository reads it directly off disk relative to
+# process.cwd() (see orders.repository.ts), so it has to land next to package.json in the
+# runtime image, not just live in the build stage/source tree.
+COPY mapping.json ./
 
 EXPOSE 3001
-CMD ["node", "dist/main.js"]
+CMD ["node", "dist/src/main.js"]
