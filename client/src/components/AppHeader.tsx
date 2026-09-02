@@ -5,6 +5,7 @@ import Typography from '@mui/material/Typography';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import Box from '@mui/material/Box';
 import LanguageSwitcher from '../i18n/LanguageSwitcher';
+import { toolbarSx, titleBoxSx } from './AppHeader.styles';
 
 /**
  * The app-wide top bar: cart icon + title on one side, LanguageSwitcher on the other. Pulled
@@ -22,8 +23,8 @@ export default function AppHeader({ className }: { className?: string } = {}) {
           inside still renders correctly (the Unicode bidi algorithm orders characters
           within a run on its own; `direction` here only pins the *flex layout*, not glyph
           order), so this doesn't affect how the Hebrew title itself reads. */}
-      <Toolbar sx={{ display: 'flex', justifyContent: 'space-between' }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+      <Toolbar sx={toolbarSx}>
+        <Box sx={titleBoxSx}>
           <ShoppingCartIcon />
           <Typography variant="h6" component="h1">
             {t('common.appTitle')}

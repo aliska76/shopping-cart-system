@@ -22,6 +22,22 @@ import {
   type CheckoutFormValues as FormValues,
   type CheckoutFormErrors as FormErrors,
 } from './checkoutValidation';
+import {
+  centeredContainerSx,
+  formContainerSx,
+  alertSx,
+  bodyTextSx,
+  emptyTitleSx,
+  formTitleSx,
+  itemsListPaperSx,
+  boldTextSx,
+  itemRowSx,
+  itemLineSx,
+  lineTotalSx,
+  totalRowSx,
+  formSx,
+  formActionsSx,
+} from './CheckoutPage.styles';
 
 export default function CheckoutPage() {
   const { t } = useTranslation();
@@ -82,11 +98,11 @@ export default function CheckoutPage() {
 
   if (confirmed) {
     return (
-      <Container maxWidth="sm" sx={{ py: 6 }} data-testid="checkout-page">
-        <Alert severity="success" sx={{ mb: 2 }}>
+      <Container maxWidth="sm" sx={centeredContainerSx} data-testid="checkout-page">
+        <Alert severity="success" sx={alertSx}>
           {t('checkout.orderConfirmedTitle')}
         </Alert>
-        <Typography sx={{ mb: 3 }}>
+        <Typography sx={bodyTextSx}>
           {t('checkout.orderConfirmedBody', { fullName: values.fullName, orderId: confirmed.id })}
         </Typography>
         <Button
@@ -104,11 +120,11 @@ export default function CheckoutPage() {
 
   if (cartItems.length === 0) {
     return (
-      <Container maxWidth="sm" sx={{ py: 6 }} data-testid="checkout-page">
-        <Typography variant="h5" component="h1" sx={{ mb: 1 }}>
+      <Container maxWidth="sm" sx={centeredContainerSx} data-testid="checkout-page">
+        <Typography variant="h5" component="h1" sx={emptyTitleSx}>
           {t('checkout.cartEmptyTitle')}
         </Typography>
-        <Typography color="text.secondary" sx={{ mb: 3 }}>
+        <Typography color="text.secondary" sx={bodyTextSx}>
           {t('checkout.cartEmptyBody')}
         </Typography>
         <Button variant="contained" onClick={() => navigate('/')}>
@@ -119,46 +135,46 @@ export default function CheckoutPage() {
   }
 
   return (
-    <Container maxWidth="sm" sx={{ py: 4 }} data-testid="checkout-page">
-      <Typography variant="h5" component="h1" sx={{ mb: 2 }}>
+    <Container maxWidth="sm" sx={formContainerSx} data-testid="checkout-page">
+      <Typography variant="h5" component="h1" sx={formTitleSx}>
         {t('checkout.title')}
       </Typography>
 
-      <Paper variant="outlined" sx={{ mb: 3 }}>
+      <Paper variant="outlined" sx={itemsListPaperSx}>
         <List dense>
           <ListItem>
-            <Typography sx={{ fontWeight: 'bold' }}>{t('checkout.yourItems')}</Typography>
+            <Typography sx={boldTextSx}>{t('checkout.yourItems')}</Typography>
           </ListItem>
           <Divider component="li" />
           {cartItems.map((item) => (
             <ListItem
               key={item.productId}
               data-testid={`order-summary-item-${item.productId}`}
-              sx={{ flexDirection: 'column', alignItems: 'stretch', gap: 0.5 }}
+              sx={itemRowSx}
             >
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
+              <Box sx={itemLineSx}>
                 <ListItemText primary={item.productName} secondary={item.categoryName} />
                 <Typography>
                   {t('checkout.quantity')}: {item.quantity}
                 </Typography>
               </Box>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
+              <Box sx={itemLineSx}>
                 <Typography variant="body2" color="text.secondary">
                   {t('catalog.pricePerUnit', {
                     price: item.unitPrice.toFixed(2),
                     unit: t(`catalog.unit.${item.unit}`),
                   })}
                 </Typography>
-                <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                <Typography variant="body2" sx={lineTotalSx}>
                   {t('checkout.lineTotal', { total: (item.unitPrice * item.quantity).toFixed(2) })}
                 </Typography>
               </Box>
             </ListItem>
           ))}
           <Divider component="li" />
-          <ListItem data-testid="order-summary-total" sx={{ display: 'flex', justifyContent: 'space-between' }}>
-            <Typography sx={{ fontWeight: 'bold' }}>{t('checkout.totalLabel')}</Typography>
-            <Typography sx={{ fontWeight: 'bold' }}>
+          <ListItem data-testid="order-summary-total" sx={totalRowSx}>
+            <Typography sx={boldTextSx}>{t('checkout.totalLabel')}</Typography>
+            <Typography sx={boldTextSx}>
               {t('checkout.total', { total: cartTotalPrice.toFixed(2) })}
             </Typography>
           </ListItem>
@@ -166,12 +182,12 @@ export default function CheckoutPage() {
       </Paper>
 
       {submitError && (
-        <Alert severity="error" sx={{ mb: 2 }}>
+        <Alert severity="error" sx={alertSx}>
           {t('checkout.orderFailed')}
         </Alert>
       )}
 
-      <Box component="form" onSubmit={handleSubmit} noValidate sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+      <Box component="form" onSubmit={handleSubmit} noValidate sx={formSx}>
         <TextField
           label={t('checkout.fullNameLabel')}
           value={values.fullName}
@@ -200,7 +216,7 @@ export default function CheckoutPage() {
           required
           fullWidth
         />
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 1 }}>
+        <Box sx={formActionsSx}>
           <Button onClick={() => navigate('/')}>{t('common.backToCatalog')}</Button>
           <Button type="submit" variant="contained" disabled={isLoading}>
             {isLoading ? t('checkout.submitting') : t('checkout.confirmOrder')}

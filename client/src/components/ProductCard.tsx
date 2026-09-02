@@ -10,6 +10,7 @@ import type { Product } from '../types/types';
 import ProductImage from './ProductImage';
 import { useAppDispatch, useAppSelector } from '../app/hooks';
 import { decrementItem, incrementItem, selectCartItemQuantity } from '../features/cart/cartSlice';
+import { cardSx, cardContentSx, titleSx, stepperRowSx, quantitySx } from './ProductCard.styles';
 
 export default function ProductCard({
   product,
@@ -43,11 +44,11 @@ export default function ProductCard({
       variant="outlined"
       className={className}
       data-testid={`product-card-${product.id}`}
-      sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}
+      sx={cardSx}
     >
       <ProductImage product={product} alt={localizedName} />
-      <CardContent sx={{ display: 'flex', flexDirection: 'column', gap: 1, flexGrow: 1 }}>
-        <Typography variant="subtitle1" component="h3" sx={{ flexGrow: 1 }}>
+      <CardContent sx={cardContentSx}>
+        <Typography variant="subtitle1" component="h3" sx={titleSx}>
           {localizedName}
         </Typography>
         <Typography variant="body2" color="text.secondary">
@@ -56,15 +57,7 @@ export default function ProductCard({
             unit: t(`catalog.unit.${product.unit}`),
           })}
         </Typography>
-        <Box
-          sx={{
-            display: 'flex',
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: 1,
-          }}
-        >
+        <Box sx={stepperRowSx}>
           <IconButton
             size="small"
             color="primary"
@@ -76,7 +69,7 @@ export default function ProductCard({
           </IconButton>
           <Typography
             variant="body1"
-            sx={{ minWidth: 24, textAlign: 'center' }}
+            sx={quantitySx}
             data-testid={`quantity-${product.id}`}
           >
             {quantity}

@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import Box from '@mui/material/Box';
 import AppHeader from './components/AppHeader';
+import { rootSx, mainSx } from './App.styles';
 import CatalogPage from './pages/CatalogPage';
 import CheckoutPage from './pages/CheckoutPage';
 
@@ -19,10 +20,10 @@ export default function App() {
 
   return (
     <BrowserRouter>
-      <Box data-testid="app" sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+      <Box data-testid="app" sx={rootSx}>
         <AppHeader />
 
-        <Box component="main" sx={{ flexGrow: 1 }}>
+        <Box component="main" sx={mainSx}>
           <Routes>
             <Route path="/" element={<CatalogPage />} />
             <Route path="/checkout" element={<CheckoutPage />} />

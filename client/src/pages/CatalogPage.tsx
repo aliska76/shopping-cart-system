@@ -15,6 +15,17 @@ import { useGetCategoriesQuery } from '../api/catalogApi';
 import ProductCard from '../components/ProductCard';
 import { useAppSelector } from '../app/hooks';
 import { selectCartTotalQuantity } from '../features/cart/cartSlice';
+import {
+  rootSx,
+  mainContainerSx,
+  loadingBoxSx,
+  tabsSx,
+  categorySectionSx,
+  categoryTitleSx,
+  productsGridSx,
+  bottomBarSx,
+  bottomBarContainerSx,
+} from './CatalogPage.styles';
 
 const ALL = 'all' as const;
 
@@ -32,10 +43,10 @@ export default function CatalogPage() {
   }, [categories, selected]);
 
   return (
-    <Box data-testid="catalog-page" sx={{ display: 'flex', flexDirection: 'column', minHeight: '100%' }}>
-      <Container maxWidth="lg" sx={{ flexGrow: 1, py: 3, pb: 12 }}>
+    <Box data-testid="catalog-page" sx={rootSx}>
+      <Container maxWidth="lg" sx={mainContainerSx}>
         {isLoading && (
-          <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
+          <Box sx={loadingBoxSx}>
             <CircularProgress aria-label={t('common.loading')} />
           </Box>
         )}
@@ -66,14 +77,7 @@ export default function CatalogPage() {
                 onChange={(_event, value: number | typeof ALL) => setSelected(value)}
                 variant="scrollable"
                 scrollButtons="auto"
-                sx={{
-                  mb: 3,
-                  '& .MuiTab-root': {
-                    fontSize: '1rem',
-                    fontWeight: 600,
-                    textTransform: 'none',
-                  },
-                }}
+                sx={tabsSx}
               >
                 <Tab label={t('catalog.allCategories')} value={ALL} />
                 {categories.map((category) => (
@@ -89,9 +93,9 @@ export default function CatalogPage() {
             {visibleCategories.map((category) => {
               const categoryName = i18n.language === 'he' ? category.nameHe : category.nameEn;
               return (
-                <Box key={category.id} sx={{ mb: 4 }}>
+                <Box key={category.id} sx={categorySectionSx}>
                   {selected === ALL && (
-                    <Typography variant="h6" component="h2" sx={{ mb: 1.5 }}>
+                    <Typography variant="h6" component="h2" sx={categoryTitleSx}>
                       {categoryName}
                     </Typography>
                   )}
@@ -99,15 +103,7 @@ export default function CatalogPage() {
                     <Typography color="text.secondary">{t('catalog.noProducts')}</Typography>
                   ) : (
                     <Box
-                      sx={{
-                        display: 'grid',
-                        gridTemplateColumns: {
-                          xs: 'repeat(2, 1fr)',
-                          sm: 'repeat(3, 1fr)',
-                          md: 'repeat(4, 1fr)',
-                        },
-                        gap: 2,
-                      }}
+                      sx={productsGridSx}
                     >
                       {category.products.map((product) => (
                         <ProductCard key={product.id} product={product} categoryName={categoryName} />
@@ -124,11 +120,11 @@ export default function CatalogPage() {
       <Paper
         elevation={3}
         square
-        sx={{ position: 'sticky', bottom: 0, py: 2, borderTop: 1, borderColor: 'divider' }}
+        sx={bottomBarSx}
       >
         <Container
           maxWidth="lg"
-          sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 2 }}
+          sx={bottomBarContainerSx}
         >
           <Typography>{t('catalog.itemsInCart', { count: totalQuantity })}</Typography>
           <Button

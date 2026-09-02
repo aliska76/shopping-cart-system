@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import Box from '@mui/material/Box';
 import type { Product } from '../types/types';
+import { imageSx } from './ProductImage.styles';
 
 const PLACEHOLDER_SRC = '/images/placeholder.svg';
 const CATALOG_API_URL = import.meta.env.VITE_CATALOG_API_URL;
@@ -70,14 +71,7 @@ export default function ProductImage({
       className={className}
       data-testid={`product-image-${product.id}`}
       onError={() => setStage((current) => nextStage(current, product))}
-      sx={{
-        width: '100%',
-        height: 140,
-        objectFit: 'contain',
-        backgroundColor: 'grey.100',
-        borderTopLeftRadius: 'inherit',
-        borderTopRightRadius: 'inherit',
-      }}
+      sx={imageSx}
     />
   );
 }
