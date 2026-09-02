@@ -1,0 +1,40 @@
+{
+  "common": {
+    "appTitle": "עגלת קניות",
+    "switchLanguage": "English",
+    "cart": "עגלה",
+    "continueToOrder": "המשך להזמנה",
+    "backToCatalog": "חזרה לקטלוג",
+    "loading": "טוען…",
+    "errorLoadingCatalog": "לא ניתן לטעון את הקטלוג. האם server-catalog פועל?",
+    "retry": "נסה שוב"
+  },
+  "catalog": {
+    "allCategories": "הכול",
+    "itemsInCart_one": "{{count}} פריט בעגלה",
+    "itemsInCart_other": "{{count}} פריטים בעגלה",
+    "addToCart": "הוסף אחד לעגלה",
+    "removeFromCart": "הסר אחד מהעגלה",
+    "noProducts": "אין מוצרים בקטגוריה זו."
+  },
+  "checkout": {
+    "title": "סיכום ההזמנה",
+    "yourItems": "הפריטים שלך",
+    "quantity": "כמות",
+    "fullNameLabel": "שם מלא",
+    "emailLabel": "דוא\"ל",
+    "addressLabel": "כתובת",
+    "fullNameRequired": "יש להזין שם מלא.",
+    "emailRequired": "יש להזין דוא\"ל.",
+    "emailInvalid": "יש להזין כתובת דוא\"ל תקינה.",
+    "addressRequired": "יש להזין כתובת.",
+    "confirmOrder": "אשר הזמנה",
+    "submitting": "שולח…",
+    "orderConfirmedTitle": "ההזמנה אושרה",
+    "orderConfirmedBody": "תודה, {{fullName}}! ההזמנה {{orderId}} נקלטה.",
+    "startNewOrder": "התחל הזמנה חדשה",
+    "cartEmptyTitle": "העגלה שלך ריקה",
+    "cartEmptyBody": "הוסיפו כמה מוצרים מהקטלוג לפני התשלום.",
+    "orderFailed": "לא ניתן היה לשלוח את ההזמנה. האם server-orders פועל?"
+  }
+}

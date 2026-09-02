@@ -1,0 +1,56 @@
+# client — Shopping Cart UI
+
+**A note on scope.** This is the two screens the assignment actually asks for (shopping list, order summary) plus a few things beyond the literal wireframe: i18n (en/he) with RTL/LTR, MUI as the component library, and a per-product-card quantity stepper instead of a single category-dropdown → product-dropdown → quantity-field → "add" flow — the stepper *is* the "add to cart" action, so the same requirement (pick a category, pick a product in it, set a quantity, add it) is satisfied with fewer clicks once every product for the selected category is already on screen. See *Design notes / trade-offs* below for why, and *Possible improvements* for what's honestly still missing.
+
+### 1. Configure environment variables — from `client/`
+
+```
+cp .env.example .env
+```
+
+Defaults already point at both APIs' default local ports (`server-catalog` on `5080`, `server-orders` on `3001`) — only edit `.env` if you're running either API somewhere else.
+
+### 2. Install dependencies — from `client/`
+
+```
+npm install
+```
+
+### 3. Run — from `client/`
+
+```
+npm run dev
+```
+
+Opens on `http://localhost:5173` (Vite's default). Both `server-catalog` and `server-orders` need to already be running for the catalog to load and orders to submit — see their own READMEs.
+
+### Tests
+
+```
+npm test
+```
+
+Vitest + React Testing Library. Two pure-logic suites (`cartSlice.test.ts`, `checkoutValidation.test.ts` — reducer/selector behavior and form validation, no DOM involved, the same "test the real logic, not a pass-through" principle as `cursor.util.spec.ts` on the `server-orders` side) plus one component test (`ProductCard.test.tsx`) that renders against a real Redux store and clicks through the increment/decrement stepper, since that interaction *is* the one truly custom piece of UI logic in this app.
+
+### Design notes / trade-offs
+
+- **MUI as the component library, with `@mui/stylis-plugin-rtl` for RTL.** The original plan (see `architecture.md`) was hand-written CSS with logical properties; MUI already emits logical properties from its own `sx`/style system, so the actual RTL/LTR mechanism ends up being the same idea — an Emotion cache with the RTL stylis plugin swapped in when the language is Hebrew (`ThemeDirectionProvider.tsx`), not a second physical-properties stylesheet maintained by hand. Deliberately `@mui/stylis-plugin-rtl` (MUI's own scoped package, versioned alongside `@mui/material`) rather than the older standalone `stylis-plugin-rtl` it's commonly documented as using — that package's last publish was 2021; the MUI-scoped fork is the one still actually maintained.
+- **react-router, two routes (`/`, `/checkout`), not a single component with local step state.** A real back button, a real URL for each screen, and no extra state to invent for "which screen am I on" — the trade-off is one more dependency for what's currently a two-screen app, which seemed worth it for behavior a reviewer would actually try (the browser back button).
+- **The quantity stepper on each product card is the "add to cart" action.** The assignment's wireframe implies one sequential flow: choose a category, choose a product in it, set a quantity, click a single "add" button. Every category's products are already visible on screen instead (see `architecture.md` point 8 for the original rationale, carried over here into actual code) — clicking + on a card is both "pick this product" and "add to cart" at once, and clicking it again increases the quantity instead of requiring a separate field. The same three requirements (category → matching product → quantity → added to cart, with the screen updating accordingly) are satisfied, just compressed into fewer steps.
+- **Cart state lives in Redux (`cartSlice`), normalized by `productId`** (`{ items: { [productId]: { productId, productName, categoryName, quantity } } }`) — the same shape `POST /api/v1/orders` expects for its `items` array, so `CheckoutPage` maps the cart straight into the request body with no reshaping. Upsert-increment (`incrementItem`) rather than always pushing a new line is what makes clicking + on a card already in the cart update its quantity instead of duplicating it.
+- **RTK Query for both APIs (`catalogApi`, `ordersApi`), one `createApi` each with its own `baseUrl` from `VITE_CATALOG_API_URL`/`VITE_ORDERS_API_URL`.** `catalogApi.getCategories` hits the plain unpaginated `GET /api/v1/categories` (not the cursor-paginated per-category products endpoint) — the whole point of that endpoint being unpaginated is that at 3 categories/18 products, everything the shopping-list screen needs arrives in one request; see `server-catalog/README.md`'s *Design notes* for why that endpoint stayed unpaginated on purpose.
+- **i18n via `i18next`/`react-i18next`, but no `i18next-browser-languagedetector`.** The language set is exactly two (`en`/`he`); one `localStorage` key plus `navigator.language` as a first-run fallback (`i18n.ts`) covers language persistence and detection without a dependency for it — the same "no framework unless it earns its keep" call already made on both backends (no Serilog, no Polly).
+- **Product images: the same `imagePath`/`imageUrl`/local-placeholder fallback chain already documented on the `server-catalog` side, now actually wired up in `ProductImage.tsx`, plus real lazy loading (`loading="lazy"`).** `server-catalog/README.md`'s *Possible improvements* listed lazy loading as blocked on `client/` existing — it isn't anymore; that bullet should come out of both backend READMEs once this is merged in (see `architecture.md`).
+- **Types for both APIs' request/response shapes are hand-written (`src/api/types.ts`), not generated from an OpenAPI spec.** Both contracts are small and stable enough that a codegen step would be more moving parts than this project needs — the same call already made for not adding an OpenAPI client generator on either backend.
+- **Written without npm registry access, then fixed against a real `npm run build`.** I don't have network access to the npm registry in either of my execution environments (confirmed directly — `npm install`/`npm create vite` both return `403 Forbidden` in the cloud container and in the device-bridge shell on your machine) — the same limitation `server-catalog` already had with `dotnet`/`docker`, just here for `npm install` itself rather than only `build`/`test`. Every file was written by hand first (real, registry-checked dependency versions and peer-dependency ranges — see the version pins in `package.json`), and after `npm install && npm run build` were actually run on your machine, the resulting 96 TypeScript errors traced back to four root causes, all now fixed: missing `"skipLibCheck": true` in both `tsconfig.app.json`/`tsconfig.node.json` (the ecosystem-standard setting for not re-checking every dependency's own `.d.ts` files, which was the overwhelming majority of the 96); `"@testing-library/jest-dom"` listed in `tsconfig.app.json`'s `types` array pulling in a `/// <reference types="jest" />` that `skipLibCheck` doesn't suppress (removed — the matcher types still come from `import '@testing-library/jest-dom/vitest'` in `src/test/setup.ts`); `stylis@4.4.0` genuinely shipping no TypeScript declarations of its own, which broke our direct `import { prefixer } from 'stylis'` in `ThemeDirectionProvider.tsx` (fixed with a small local ambient declaration, `src/types/stylis.d.ts`, rather than `@types/stylis`, which is pinned to an older `stylis` line than the one this project depends on); and a genuine MUI 9.4.0 `Stack` prop-typing incompatibility in `ProductCard.tsx` (`direction`/`alignItems`/`justifyContent`/`spacing` didn't match either overload) — same fix as the `Grid` avoidance elsewhere, swapped for `Box` + `sx` flex layout. `npm install` and `npm run build` have now both been run for real; `npm test` was run next and caught a fifth, unrelated issue: `vitest run` crashed before any test executed, with `TypeError: webidl.util.markAsUncloneable is not a function` inside `node_modules/undici/lib/web/cache/cachestorage.js`, loaded transitively by `jsdom`. Traced to a real version mismatch, not a bug in this project's own code: `jsdom@30.0.1` (the version originally pinned here) depends on `undici@^8.9.0`, and undici 8.0.3+ calls `node:worker_threads.markAsUncloneable`, a function Node only added in v22.10.0/v23.0.0 ([Node docs](https://nodejs.org/api/worker_threads.html), [nodejs/undici#5024](https://github.com/nodejs/undici/issues/5024)) — jsdom 30's own `engines` field (`^22.22.2 || ^24.15.0 || >=26.0.0`) confirms it requires a Node newer than that. Your `node -v` is `v20.19.5`, well below that floor. Rather than asking you to upgrade Node just to run this project's tests, `jsdom` is now pinned to `^29.1.0` instead — the most recent jsdom release whose `engines` field (`^20.19.0 || ^22.13.0 || >=24.0.0`) still covers Node 20.19.x, and which depends on `undici@^7.25.0` (predates the breaking call entirely), rather than staying on the newest jsdom and requiring everyone who runs this project's tests to be on a very recent Node. Run `npm install` once more to pick up the new `jsdom` in `package-lock.json`, then `npm test` again.
+
+### Possible improvements
+
+Scoped out for a take-home assignment — framed as what I'd add next to take this from a demo to something production-ready, not just gaps left unspoken.
+
+- **Add an OpenAPI-generated client for both APIs instead of hand-written types**, once either contract starts changing often enough that keeping `src/api/types.ts` in sync by hand becomes real work.
+- **Add end-to-end tests (Playwright) against real running instances of both APIs**, covering the full add-to-cart → checkout → confirmed-order flow — the current tests cover the cart/validation logic and one component in isolation, not the whole flow wired together.
+- **Persist the cart across a page reload** (`localStorage`, the same mechanism already used for the language preference) — right now refreshing mid-shop loses the cart, same as most Redux-only setups without an explicit persistence layer.
+- **Add a proper Hebrew-friendly web font** (e.g. Assistant or Rubik) instead of the MUI default — Roboto renders Hebrew adequately but wasn't designed for it.
+- **Add a CI pipeline** that runs `npm run build`/`npm test` on every push/PR — both are run by hand right now.
+- **Add Dependabot or Renovate** to flag an outdated package or Node version automatically, instead of relying on someone noticing.

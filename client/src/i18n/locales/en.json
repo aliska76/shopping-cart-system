@@ -1,0 +1,40 @@
+{
+  "common": {
+    "appTitle": "Shopping Cart",
+    "switchLanguage": "עברית",
+    "cart": "Cart",
+    "continueToOrder": "Continue to order",
+    "backToCatalog": "Back to catalog",
+    "loading": "Loading…",
+    "errorLoadingCatalog": "Couldn't load the catalog. Is server-catalog running?",
+    "retry": "Retry"
+  },
+  "catalog": {
+    "allCategories": "All",
+    "itemsInCart_one": "{{count}} item in cart",
+    "itemsInCart_other": "{{count}} items in cart",
+    "addToCart": "Add one to cart",
+    "removeFromCart": "Remove one from cart",
+    "noProducts": "No products in this category."
+  },
+  "checkout": {
+    "title": "Order summary",
+    "yourItems": "Your items",
+    "quantity": "Qty",
+    "fullNameLabel": "Full name",
+    "emailLabel": "Email",
+    "addressLabel": "Address",
+    "fullNameRequired": "Full name is required.",
+    "emailRequired": "Email is required.",
+    "emailInvalid": "Enter a valid email address.",
+    "addressRequired": "Address is required.",
+    "confirmOrder": "Confirm order",
+    "submitting": "Submitting…",
+    "orderConfirmedTitle": "Order confirmed",
+    "orderConfirmedBody": "Thanks, {{fullName}}! Your order {{orderId}} was placed.",
+    "startNewOrder": "Start a new order",
+    "cartEmptyTitle": "Your cart is empty",
+    "cartEmptyBody": "Add a few products from the catalog before checking out.",
+    "orderFailed": "Couldn't place the order. Is server-orders running?"
+  }
+}
