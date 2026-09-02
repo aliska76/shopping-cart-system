@@ -17,9 +17,62 @@ export interface CartState {
   items: Record<number, CartItem>;
 }
 
-const initialState: CartState = {
-  items: {},
-};
+// Same mechanism as the language preference (see ../../i18n/i18n.ts): a single localStorage
+// key, read once at store-creation time and written back on every change, no persistence
+// library. Refreshing mid-shop would otherwise lose the cart, since Redux state alone doesn't
+// survive a reload.
+const CART_STORAGE_KEY = 'shopping-cart-system.cart';
+
+const PRODUCT_UNITS: ProductUnit[] = ['Kilogram', 'Piece', 'Liter'];
+
+function isValidCartItem(value: unknown, productId: string): value is CartItem {
+  if (typeof value !== 'object' || value === null) return false;
+  const item = value as Record<string, unknown>;
+  return (
+    item.productId === Number(productId) &&
+    typeof item.productName === 'string' &&
+    typeof item.categoryName === 'string' &&
+    typeof item.unitPrice === 'number' &&
+    PRODUCT_UNITS.includes(item.unit as ProductUnit) &&
+    typeof item.quantity === 'number' &&
+    item.quantity > 0
+  );
+}
+
+/**
+ * Reads the persisted cart back on startup. Deliberately defensive rather than trusting
+ * whatever's in localStorage outright -- it's user-editable browser storage, and the shape
+ * could also be stale from an earlier version of this app. Any single malformed line is
+ * dropped rather than discarding the whole cart, and any parse/shape failure at all falls
+ * back to an empty cart instead of throwing during store setup.
+ */
+function loadInitialCartState(): CartState {
+  try {
+    const raw = window.localStorage.getItem(CART_STORAGE_KEY);
+    if (!raw) return { items: {} };
+
+    const parsed: unknown = JSON.parse(raw);
+    if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) return { items: {} };
+    const candidateItems = (parsed as { items?: unknown }).items;
+    if (typeof candidateItems !== 'object' || candidateItems === null) return { items: {} };
+
+    const items: Record<number, CartItem> = {};
+    for (const [productId, value] of Object.entries(candidateItems as Record<string, unknown>)) {
+      if (isValidCartItem(value, productId)) {
+        items[Number(productId)] = value;
+      }
+    }
+    return { items };
+  } catch {
+    return { items: {} };
+  }
+}
+
+export function persistCartState(state: CartState): void {
+  window.localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(state));
+}
+
+const initialState: CartState = loadInitialCartState();
 
 interface ProductRef {
   productId: number;

@@ -341,7 +341,7 @@ npm test
 
 Vitest + React Testing Library. Two pure-logic suites (`cartSlice.test.ts`, `checkoutValidation.test.ts` — reducer/selector behavior and form validation, no DOM involved) plus two component tests: `ProductCard.test.tsx` (renders against a real Redux store, clicks through the increment/decrement stepper) and `CheckoutPage.test.tsx` (renders the order summary and checks the per-line unit price/total and the grand total).
 
-28 tests total. Verified by `tsc --noEmit` (clean) after this round's changes — `vitest run` itself couldn't be confirmed from here (`Cannot find native binding` for `@rolldown/binding-wasm32-wasi`, a known npm optional-dependency bug, [npm/cli#4828](https://github.com/npm/cli/issues/4828); a full `node_modules`/`package-lock.json` reinstall was attempted but the missing platform binary isn't reachable from this environment either) — run `npm test` locally to confirm.
+33 tests total. Verified by `tsc --noEmit` (clean) after this round's changes — `vitest run` itself couldn't be confirmed from here (`Cannot find native binding` for `@rolldown/binding-wasm32-wasi`, a known npm optional-dependency bug, [npm/cli#4828](https://github.com/npm/cli/issues/4828); a full `node_modules`/`package-lock.json` reinstall was attempted but the missing platform binary isn't reachable from this environment either) — run `npm test` locally to confirm.
 
 *(Note on test output: One cosmetic warning regarding `ButtonBase` from MUI may appear in stderr during `ProductCard.test.tsx` due to a known upstream React Testing Library interaction, which does not affect test assertions.)*
 
@@ -359,6 +359,7 @@ Vitest + React Testing Library. Two pure-logic suites (`cartSlice.test.ts`, `che
 * **Type-safe unit mapping.** Uses a shared `ProductUnit` union type (`'Kilogram' | 'Piece' | 'Liter'`) mapped directly to localized translation keys (`catalog.unit.*`), ensuring UI units remain consistent with backend enums.
 * **Multi-stage Docker support.** Includes a `Dockerfile` utilizing a Node build stage transitioning to a lightweight `nginx:alpine` runtime serving static assets, complete with SPA fallback routing rules.
 * **Order summary shows unit price, a per-line total, and a grand total.** Cart lines snapshot `unitPrice`/`unit` from the product at the moment they're added (`cartSlice.ts`), not re-read live from the catalog — so `/checkout` reflects the price the shopper actually saw. Each line reuses the same `catalog.pricePerUnit` translation key `ProductCard` already shows; a new `selectCartTotalPrice` selector sums `unitPrice × quantity` across every line for the grand total. Display-only — `POST /api/v1/orders` still sends just `productId`/`productName`/`categoryName`/`quantity`, since `server-orders` doesn't store prices at all.
+* **Cart persists across a page reload (`localStorage`), same mechanism as the language preference.** `cartSlice.ts` reads the cart back from a single `shopping-cart-system.cart` key once at store-creation time and `store.ts` writes it back via `store.subscribe`, on any real change to the `cart` slice (a reference-equality check, so unrelated actions like catalog/orders fetches or checkout-form typing don't trigger a write). The read side is defensive rather than trusting stored data outright: malformed JSON, or a stored shape from an older version of the app, falls back to an empty cart; a single malformed line inside an otherwise-valid cart is dropped without discarding the rest.
 
 ---
 
@@ -368,5 +369,4 @@ Scoped out for a take-home assignment — framed as what I'd add next to take th
 
 * **Add an OpenAPI-generated client** for both APIs instead of hand-written types, once the contracts stabilize or scale.
 * **Add end-to-end tests (Playwright)** against real running instances of both APIs to cover the complete checkout lifecycle.
-* **Persist the cart across page reloads** using `localStorage`.
 * **Add a dedicated Hebrew-friendly web font** (e.g., Assistant or Rubik) to replace the default MUI typography for Hebrew views.

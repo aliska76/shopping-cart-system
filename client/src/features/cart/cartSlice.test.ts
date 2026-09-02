@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import cartReducer, {
   incrementItem,
   decrementItem,
@@ -10,6 +10,7 @@ import cartReducer, {
   selectCartTotalQuantity,
   selectCartTotalPrice,
   selectCartIsEmpty,
+  persistCartState,
   type CartState,
 } from './cartSlice';
 
@@ -122,5 +123,66 @@ describe('cartSlice selectors', () => {
 
   it('selectCartTotalPrice is 0 for an empty cart', () => {
     expect(selectCartTotalPrice(emptyState)).toBe(0);
+  });
+});
+
+describe('cart persistence (localStorage)', () => {
+  const CART_STORAGE_KEY = 'shopping-cart-system.cart';
+
+  beforeEach(() => {
+    window.localStorage.clear();
+  });
+
+  it('persistCartState writes the cart under the shared storage key', () => {
+    const state: CartState = { items: { 15: { ...apple, quantity: 2 } } };
+    persistCartState(state);
+    expect(JSON.parse(window.localStorage.getItem(CART_STORAGE_KEY)!)).toEqual(state);
+  });
+
+  it('loads a previously persisted cart back as the initial state on module init', async () => {
+    window.localStorage.setItem(CART_STORAGE_KEY, JSON.stringify({ items: { 15: { ...apple, quantity: 2 } } }));
+
+    vi.resetModules();
+    const fresh = await import('./cartSlice');
+    const state = fresh.default(undefined, { type: '@@INIT' });
+
+    expect(state.items[15]).toEqual({ ...apple, quantity: 2 });
+  });
+
+  it('falls back to an empty cart when nothing is stored', async () => {
+    vi.resetModules();
+    const fresh = await import('./cartSlice');
+    const state = fresh.default(undefined, { type: '@@INIT' });
+
+    expect(state.items).toEqual({});
+  });
+
+  it('falls back to an empty cart when the stored value is malformed JSON', async () => {
+    window.localStorage.setItem(CART_STORAGE_KEY, '{not valid json');
+
+    vi.resetModules();
+    const fresh = await import('./cartSlice');
+    const state = fresh.default(undefined, { type: '@@INIT' });
+
+    expect(state.items).toEqual({});
+  });
+
+  it('drops only the malformed line, keeping the rest of a persisted cart intact', async () => {
+    window.localStorage.setItem(
+      CART_STORAGE_KEY,
+      JSON.stringify({
+        items: {
+          15: { ...apple, quantity: 2 },
+          11: { productId: 11, productName: 'Tomatoes', categoryName: 'Fruits & Vegetables', unit: 'Kilogram' }, // missing unitPrice/quantity
+        },
+      }),
+    );
+
+    vi.resetModules();
+    const fresh = await import('./cartSlice');
+    const state = fresh.default(undefined, { type: '@@INIT' });
+
+    expect(state.items[15]).toEqual({ ...apple, quantity: 2 });
+    expect(state.items[11]).toBeUndefined();
   });
 });

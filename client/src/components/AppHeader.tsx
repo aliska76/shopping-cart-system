@@ -16,7 +16,13 @@ export default function AppHeader({ className }: { className?: string } = {}) {
   const { t } = useTranslation();
 
   return (
-    <AppBar position="static" color="primary" className={className} data-testid="app-header">
+    <AppBar 
+      position="static" 
+      color="primary" 
+      className={className} 
+      data-testid="app-header" 
+      dir="ltr"
+    >
       {/* Pinned to a physical LTR layout regardless of the current language -- logo/title
           stay on the physical left, LanguageSwitcher on the physical right in both en and
           he, rather than the header itself mirroring on every language switch. Hebrew text
